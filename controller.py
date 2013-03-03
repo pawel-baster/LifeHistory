@@ -1,18 +1,21 @@
 import wx
 from model import Model
-from view import MainWindow
+from view import View
 
 class Controller:
 	
+	def __init__(self, model, view):
+		self.model = model
+		self.view = view
+
 	def run(self):
-		app = wx.App( False )
-		frame = MainWindow()
 		events = [('2010', 'Event 1'), ('2011', 'Event 2')]
-		frame.showEvents(events)
-		frame.Show()
-		app.MainLoop()
+		view.events = events
+		view.show()
 
 if __name__ == '__main__':
-	controller = Controller()
+	model = Model()
+	view = View()
+	controller = Controller(model, view)
 	controller.run()
 

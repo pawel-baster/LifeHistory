@@ -20,7 +20,12 @@ class MainWindow( wx.Frame ) :
 			topSizer.Add(rowSizer, 0, wx.ALL)
 		panel.SetSizer(topSizer)
 	
+class View:
+	def show(self):
+		self.app = wx.App( False )
+		self.frame = MainWindow()				
+		self.frame.showEvents(self.events)
+		self.frame.Show()
+		self.app.MainLoop()
 		
-
-
 
