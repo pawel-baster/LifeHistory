@@ -52,11 +52,11 @@ class ModelTestCase(unittest.TestCase):
 	events1 = self.instance.getEvents(lines, datetime.date(2012, 2, 5))
 	assert len(events1) == 0
 	
-	events2 = self.instance.getEvents(lines, datetime.date(2012, 2, 15))
-	assert len(events2) == 1
+	events2 = self.instance.getEvents(lines, datetime.date(2012, 2, 10))
+	assert len(events2) == 1, "expected %d results, got: %d" % (1, len(events2))
 	assert events2[0] == ('2012', 'Event 1')
 
-	events3 = self.instance.getEvents(lines, datetime.date(2012, 2, 18))
+	events3 = self.instance.getEvents(lines, datetime.date(2012, 2, 15))
 	assert len(events3) == 2
 	assert events3[0] == ('2012', 'Event 1')
 	assert events3[1] == ('2012', 'Event 2')
@@ -71,21 +71,23 @@ class ModelTestCase(unittest.TestCase):
     def testGetEvents7(self):
 	"""Test multiple day event with invalid dates"""
 	lines = ['2012-02-20 - 2012-02-10: Event 1']
-
-	events1 = self.instance.getEvents(lines, datetime.date(2012, 2, 5))
+	try:
+		events1 = self.instance.getEvents(lines, datetime.date(2012, 2, 5))
+	except ValueError:
+		return
 	assert False
 
     def testGetEvents8(self):
 	"""Test multiple day event with different start and end year"""
 	lines = ['2011-12-30 - 2012-01-02: Event 1']
 	events = self.instance.getEvents(lines, datetime.date(2011, 12, 31))
-	assert len(events) == 1
+	assert len(events) == 1, "expected %d results, got: %d" % (1, len(events))
 	events = self.instance.getEvents(lines, datetime.date(2012, 12, 31))
-	assert len(events) == 0
+	assert len(events) == 0, "expected %d results, got: %d" % (0, len(events))
 	events = self.instance.getEvents(lines, datetime.date(2012, 01, 01))
-	assert len(events) == 1
+	assert len(events) == 1, "expected %d results, got: %d" % (1, len(events))
 	events = self.instance.getEvents(lines, datetime.date(2011, 01, 01))
-	assert len(events) == 0
+	assert len(events) == 0, "expected %d results, got: %d" % (0, len(events))
 
 
 if __name__ == "__main__":

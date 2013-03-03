@@ -22,9 +22,8 @@ class Model:
 		events = []
 		for line in lines:
 			eventTokens = self.parseLine(line)
-			if self.validateTokens(eventTokens):
-				if self.showEvent(eventTokens, date):
-					events.append((eventTokens.startYear, eventTokens.event))
+			if self.showEvent(eventTokens, date):
+				events.append((eventTokens.startYear, eventTokens.event))
 		
 				
 		return events
@@ -53,30 +52,30 @@ class Model:
 
 		tokens.event = matcher.group('event')
 		return tokens
-
-	def validateTokens(self, tokens):
+		
+	def showEvent(self, tokens, today):
 		if tokens.isComment:
 			return False
 
 		tokens.startDate = datetime.date(int(tokens.startYear), int(tokens.startMonth), int(tokens.startDay))		
 		if tokens.endYear != None and tokens.endMonth != None and tokens.endDay != None:
-			tokens.startDate = datetime.date(int(tokens.endYear), int(tokens.endMonth), int(tokens.endDay))		
-			assert tokens.endDate != None, "tokens == None, " + str(tokens)
+			tokens.endDate = datetime.date(int(tokens.endYear), int(tokens.endMonth), int(tokens.endDay))		
+			if tokens.startDate > tokens.endDate:
+				raise ValueError('Start date after end date')				
 		else:
 			tokens.endDate = tokens.startDate
-			assert tokens.endDate != None, "tokens == None, " + str(tokens)
-		return True
-		
-	def showEvent(self, tokens, today):
-		if self.dateWithinRange(tokens.startDate, tokens.endDate, today):
-			return True
-		else:
-			return False
 
-	def dateWithinRange(self, start, end, date):
+		return self.isDateWithinRange(tokens.startDate, tokens.endDate, today)
+
+	def isDateWithinRange(self, start, end, date):
 		startTouple = (start.month, start.day)
 		endTouple = (end.month, end.day)
 		curTouple = (date.month, date.day)
 
-		return startTouple <= curTouple <= endTouple
-		
+		if start.year == end.year:
+			return startTouple <= curTouple <= endTouple
+		elif start.year + 1 == end.year:
+			return (start.year == date.year and startTouple <= curTouple) or (date.year == end.year and curTouple <= endTouple)
+		else:
+			raise ValueError('Not more than one year difference between event start and end is allowed')		
+	
