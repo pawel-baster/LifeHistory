@@ -1,6 +1,9 @@
 import wx
+import datetime
+
 from model import Model
 from view import View
+import config
 
 class Controller:
 	
@@ -9,8 +12,10 @@ class Controller:
 		self.view = view
 
 	def run(self):
-		events = [('2010', 'Event 1'), ('2011', 'Event 2')]
-		view.events = events
+		for filename in config.eventFiles:
+			self.model.loadFile(filename)			
+
+		view.events = self.model.getEventsFromLoadedFiles(datetime.date.today())
 		view.show()
 
 if __name__ == '__main__':

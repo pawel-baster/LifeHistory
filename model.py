@@ -18,6 +18,16 @@ class LineTokens:
 
 class Model: 
 
+	lines = []
+
+	def loadFile(self, filename):
+		for line in open(filename):
+			self.lines.append(line)
+		
+
+	def getEventsFromLoadedFiles(self, date):
+		return self.getEvents(self.lines, date)	
+
 	def getEvents(self, lines, date):
 		events = []
 		for line in lines:
@@ -26,7 +36,7 @@ class Model:
 				events.append((eventTokens.startYear, eventTokens.event))
 		
 				
-		return events
+		return sorted(events)
 
 	def parseLine(self, line):
 		pattern = re.compile("^(?P<comment>\#).*"
