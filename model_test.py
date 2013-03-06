@@ -22,10 +22,14 @@ class ModelTestCase(unittest.TestCase):
 	assert len(events) == 0, "expected %d results, got: %d" % (0, len(events))
 
     def testGetEvents3(self):
-        """empty events list"""
-        lines = []
-	events = self.instance.getEvents(lines, datetime.date(2012, 2, 20))
-	assert len(events) == 0
+        """empty lines and comments"""
+	self.instance.addLine('')
+	self.instance.addLine(' ')
+	self.instance.addLine(' # comment')
+	self.instance.addLine('# comment')
+	self.instance.addLine('2012-02-20 : Test event')
+	events = self.instance.getEventsFromLoadedFiles(datetime.date(2012, 2, 20))
+	assert len(events) == 1, "expected %d results, got: %d" % (1, len(events))
 
     def testGetEvents4(self):
         """three events, two at the same date"""
@@ -37,13 +41,6 @@ class ModelTestCase(unittest.TestCase):
 	assert len(events2) == 2
 	assert events2[0] == ('2012', 'Overlapping event 1')
 	assert events2[1] == ('2012', 'Overlapping event 2')
-
-    def testGetEvents5(self):
-        """Test comments"""
-        lines = ['# a comment', '2012-02-20: Event 1']
-	events = self.instance.getEvents(lines, datetime.date(2012, 2, 20))
-	assert len(events) == 1
-	assert events[0] == ('2012', 'Event 1')
 
     def testGetEvents6(self):
 	"""Test multiple day events"""

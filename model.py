@@ -3,7 +3,6 @@ import re
 import datetime
 
 class LineTokens:
-	isComment = None
 	name = None
 
 	startYear = None
@@ -19,14 +18,22 @@ class LineTokens:
 class Model: 
 
 	lines = []
+	ignoredLineRegex = re.compile('^\s*$|^\s*\#.*$') # ignore empty lines and comments
+	validEventLineRegex = re.compile("^(?P<startYear>\d{4})-(?P<startMonth>\d{2})-(?P<startDay>\d{2})\s*" 
+		+ "(-\s*(?P<endYear>\d{4})-(?P<endMonth>\d{2})-(?P<endDay>\d{2})\s*)?" 
+		+ ":\s*" 
+		+ "(?P<event>.*)$", re.VERBOSE)
 
 	def loadFile(self, filename):
 		for line in open(filename):
-			self.lines.append(line)
+			self.addLine(line)
 		
+	def addLine(self, line):
+		if line != "" and self.ignoredLineRegex.match(line) is None:
+			self.lines.append(line)
 
 	def getEventsFromLoadedFiles(self, date):
-		return self.getEvents(self.lines, date)	
+		return self.getEvents(self.lines, date)
 
 	def getEvents(self, lines, date):
 		events = []
@@ -35,22 +42,14 @@ class Model:
 			if self.showEvent(eventTokens, date):
 				events.append((eventTokens.startYear, eventTokens.event))
 		
-				
 		return sorted(events)
 
-	def parseLine(self, line):
-		pattern = re.compile("^(?P<comment>\#).*"
-			+ "|(?P<startYear>\d{4})-(?P<startMonth>\d{2})-(?P<startDay>\d{2})\s*" 
-			+ "(-\s*(?P<endYear>\d{4})-(?P<endMonth>\d{2})-(?P<endDay>\d{2})\s*)?" 
-			+ ":\s*" 
-			+ "(?P<event>.*)$", re.VERBOSE)
-		matcher = pattern.match(line)
+	def parseLine(self, line):		
+		matcher = self.validEventLineRegex.match(line)
 		if matcher is None:
 			raise Exception('Line not matched: ' + line)
 
 		tokens = LineTokens()
-
-		tokens.isComment = (matcher.group('comment') == '#')
 
 		tokens.startYear = matcher.group('startYear')
 		tokens.startMonth = matcher.group('startMonth')
@@ -64,9 +63,6 @@ class Model:
 		return tokens
 		
 	def showEvent(self, tokens, today):
-		if tokens.isComment:
-			return False
-
 		tokens.startDate = datetime.date(int(tokens.startYear), int(tokens.startMonth), int(tokens.startDay))		
 		if tokens.endYear != None and tokens.endMonth != None and tokens.endDay != None:
 			tokens.endDate = datetime.date(int(tokens.endYear), int(tokens.endMonth), int(tokens.endDay))		
