@@ -3,7 +3,7 @@ import re
 import datetime
 
 class LineTokens:
-	name = None
+	eventName = None
 
 	startYear = None
 	startMonth = None
@@ -18,15 +18,22 @@ class LineTokens:
 class Model: 
 
 	lines = []
+	files = []
 	ignoredLineRegex = re.compile('^\s*$|^\s*\#.*$') # ignore empty lines and comments
 	validEventLineRegex = re.compile("^(?P<startYear>\d{4})-(?P<startMonth>\d{2})-(?P<startDay>\d{2})\s*" 
 		+ "(-\s*(?P<endYear>\d{4})-(?P<endMonth>\d{2})-(?P<endDay>\d{2})\s*)?" 
 		+ ":\s*" 
 		+ "(?P<event>.*)$", re.VERBOSE)
 
-	def loadFile(self, filename):
-		for line in open(filename):
-			self.addLine(line)
+	def loadFiles(self, files):
+	        self.files = files
+	        self.reloadEvents()
+	        
+	def reloadEvents(self):
+		self.lines = []
+		for filename in self.files:
+		    for line in open(filename):
+			  self.addLine(line)
 		
 	def addLine(self, line):
 		if line != "" and self.ignoredLineRegex.match(line) is None:
@@ -40,9 +47,9 @@ class Model:
 		for line in lines:
 			eventTokens = self.parseLine(line)
 			if self.showEvent(eventTokens, date):
-				events.append((eventTokens.startYear, eventTokens.event))
+				events.append(eventTokens)
 		
-		return sorted(events)
+		return sorted(events, key=lambda event: event.startDate)
 
 	def parseLine(self, line):		
 		matcher = self.validEventLineRegex.match(line)
@@ -59,13 +66,21 @@ class Model:
 		tokens.endMonth = matcher.group('endMonth')
 		tokens.endDay = matcher.group('endDay')
 
-		tokens.event = matcher.group('event')
+		tokens.eventName = matcher.group('event')
 		return tokens
 		
 	def showEvent(self, tokens, today):
-		tokens.startDate = datetime.date(int(tokens.startYear), int(tokens.startMonth), int(tokens.startDay))		
+		try:
+			tokens.startDate = datetime.date(int(tokens.startYear), int(tokens.startMonth), int(tokens.startDay))		
+		except ValueError: 
+			raise ValueError("Could not parse start date: %s-%s-%s" % (tokens.startYear, tokens.startMonth, tokens.startDay))
+	
 		if tokens.endYear != None and tokens.endMonth != None and tokens.endDay != None:
-			tokens.endDate = datetime.date(int(tokens.endYear), int(tokens.endMonth), int(tokens.endDay))		
+			try:
+				tokens.endDate = datetime.date(int(tokens.endYear), int(tokens.endMonth), int(tokens.endDay))		
+			except ValueError: 
+				raise ValueError("Could not parse end date: %d-%d-%d" % (int(tokens.endYear), int(tokens.endMonth), int(tokens.endDay)))
+				
 			if tokens.startDate > tokens.endDate:
 				raise ValueError('Start date after end date')				
 		else:

@@ -12,15 +12,12 @@ class Controller:
 		self.view = view
 
 	def run(self):
-		for filename in config.eventFiles:
-			self.model.loadFile(filename)			
-
-		view.events = self.model.getEventsFromLoadedFiles(datetime.date.today())
+		self.model.loadFiles(config.eventFiles)
 		view.show()
 
 if __name__ == '__main__':
 	model = Model()
-	view = View()
+	view = View(model)
 	controller = Controller(model, view)
 	controller.run()
 
