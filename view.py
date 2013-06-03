@@ -55,8 +55,7 @@ class View:
 		self.app.MainLoop()
 		
 	def updateEventsView(self):
-		self.model.reloadEvents()
-	        events = self.model.getEventsFromLoadedFiles(datetime.date.today())
+		events = self.model.getEvents(datetime.date.today())
 		self.frame.showEvents(events)
 
 

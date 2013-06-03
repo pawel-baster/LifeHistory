@@ -1,7 +1,7 @@
 import wx
 import datetime
 
-from model import Model
+from model import Model, FileParser
 from view import View
 import config
 
@@ -12,11 +12,11 @@ class Controller:
 		self.view = view
 
 	def run(self):
-		self.model.loadFiles(config.eventFiles)
 		view.show()
 
 if __name__ == '__main__':
-	model = Model()
+	parser = FileParser(config.eventFiles)
+	model = Model(parser)
 	view = View(model)
 	controller = Controller(model, view)
 	controller.run()
