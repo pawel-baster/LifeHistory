@@ -30,7 +30,7 @@ class MainWindow( wx.Frame ) :
 		for event in events:
 			year = wx.StaticText(self.panel, label=str(event.startDate))
 			event = wx.StaticText(self.panel, label=event.eventName)
-			event.Wrap(self.GetSize().width - 50)
+			event.Wrap(self.GetSize().width - 80)
 			rowSizer = wx.BoxSizer(wx.HORIZONTAL)
 			rowSizer.Add(year, 0, wx.ALL, border=5)
 			rowSizer.Add(event, 0, wx.ALL, border=5)
