@@ -42,6 +42,23 @@ class FileParser:
 		tokens.endDay = matcher.group('endDay')
 
 		tokens.eventName = matcher.group('event')
+
+		try:
+			tokens.startDate = datetime.date(int(tokens.startYear), int(tokens.startMonth), int(tokens.startDay))		
+		except ValueError: 
+			raise ValueError("Could not parse start date: %s-%s-%s" % (tokens.startYear, tokens.startMonth, tokens.startDay))
+	
+		if tokens.endYear != None and tokens.endMonth != None and tokens.endDay != None:
+			try:
+				tokens.endDate = datetime.date(int(tokens.endYear), int(tokens.endMonth), int(tokens.endDay))		
+			except ValueError: 
+				raise ValueError("Could not parse end date: %d-%d-%d" % (int(tokens.endYear), int(tokens.endMonth), int(tokens.endDay)))
+				
+			if tokens.startDate > tokens.endDate:
+				raise ValueError('Start date after end date')				
+		else:
+			tokens.endDate = tokens.startDate
+
 		return tokens
 	        
 	def reloadEvents(self):
@@ -79,34 +96,54 @@ class Model:
 			events.append(eventTokens)
 		return sorted(events, key=lambda event: event.startDate)
 		
-	def showEvent(self, tokens, today):
-		try:
-			tokens.startDate = datetime.date(int(tokens.startYear), int(tokens.startMonth), int(tokens.startDay))		
-		except ValueError: 
-			raise ValueError("Could not parse start date: %s-%s-%s" % (tokens.startYear, tokens.startMonth, tokens.startDay))
-	
-		if tokens.endYear != None and tokens.endMonth != None and tokens.endDay != None:
-			try:
-				tokens.endDate = datetime.date(int(tokens.endYear), int(tokens.endMonth), int(tokens.endDay))		
-			except ValueError: 
-				raise ValueError("Could not parse end date: %d-%d-%d" % (int(tokens.endYear), int(tokens.endMonth), int(tokens.endDay)))
-				
-			if tokens.startDate > tokens.endDate:
-				raise ValueError('Start date after end date')				
-		else:
-			tokens.endDate = tokens.startDate
-
-		return self.isDateWithinRange(tokens.startDate, tokens.endDate, today)
+	def showEvent(self, tokens, date):
+		return self.isDateWithinRange(tokens.startDate, tokens.endDate, date)
 
 	def isDateWithinRange(self, start, end, date):
-		startTouple = (start.month, start.day)
-		endTouple = (end.month, end.day)
-		curTouple = (date.month, date.day)
+		startDayMonth = (start.month, start.day)
+		endDayMonth = (end.month, end.day)
+		dateDayMonth = (date.month, date.day)
 
 		if start.year == end.year:
-			return startTouple <= curTouple <= endTouple
+			return startDayMonth <= dateDayMonth <= endDayMonth
 		elif start.year + 1 == end.year:
-			return (start.year == date.year and startTouple <= curTouple) or (date.year == end.year and curTouple <= endTouple)
+			return (start.year == date.year and startDayMonth <= dateDayMonth) or (date.year == end.year and dateDayMonth <= endDayMonth)
 		else:
 			raise ValueError('Not more than one year difference between event start and end is allowed')		
 	
+
+class GetClosestEventsModel(Model):
+	'''if the number of todays events is lower than given eventCount value, fill the list with other events by proximity'''
+
+	def __init__(self, parser, eventCount):
+		Model.__init__(self, parser)
+		self.eventCount = eventCount
+
+	def getEvents(self, date):
+		self.parser.reloadEvents()
+		events = sorted(map(lambda event: (self.dateDistance(date, event), event), self.parser.getEvents(date))) #, key=lambda event: self.dateDistance(date, event))#
+		selectedEvents = []
+		counter = 0
+		for (diff, event) in events:
+			if diff == 0 or counter < self.eventCount:
+				selectedEvents.append(event)
+				counter += 1
+			else:
+				break
+					
+		return sorted(selectedEvents, key=lambda event: event.startDate)
+			
+	def dateDistance(self, date, event):
+		startDayMonth = (event.startDate.month, event.startDate.day)
+		endDayMonth = (event.endDate.month, event.endDate.day)
+		dateDayMonth = (date.month, date.day)
+
+		if startDayMonth < dateDayMonth and dateDayMonth < endDayMonth:
+			return 0
+		elif startDayMonth > dateDayMonth:
+			return self.dayMonthDifference(startDayMonth, dateDayMonth)
+		else:
+			return self.dayMonthDifference(dateDayMonth, endDayMonth)
+
+	def dayMonthDifference(self, dayMonthTouple1, dayMonthTouple2):
+		return 31*(dayMonthTouple1[0] - dayMonthTouple2[0]) + (dayMonthTouple1[1] - dayMonthTouple2[1])
