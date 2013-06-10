@@ -134,6 +134,11 @@ class GetClosestEventsModel(Model):
 		return sorted(selectedEvents, key=lambda event: event.startDate)
 			
 	def dateDistance(self, date, event):
+
+		# not very pretty
+		if event.endDate.year == date.year:
+			return 1000
+
 		startDayMonth = (event.startDate.month, event.startDate.day)
 		endDayMonth = (event.endDate.month, event.endDate.day)
 		dateDayMonth = (date.month, date.day)
