@@ -2,7 +2,23 @@
 import re
 import datetime
 
-class LineTokens:
+class Event:
+
+	def __init__(self, eventName = None, startDate = None, endDate = None):
+	    self.eventName = eventName
+	    
+	    if startDate is not None:
+		    self.startDate = startDate
+		    self.startYear = startDate.year
+		    self.startMonth = startDate.month
+		    self.startDay = startDate.day
+
+		    self.endDate = endDate if endDate is not None else startDate
+		    self.endYear = endDate.year if endDate is not None else startDate.year
+	            self.endMonth = endDate.month if endDate is not None else startDate.month
+		    self.endDay = endDate.day if endDate is not None else startDate.day
+		
+
 	eventName = None
 
 	startYear = None
@@ -15,7 +31,7 @@ class LineTokens:
 	endDay = None
 	endDate = None
 
-class FileParser:
+class TextFileParser:
   
 	def __init__(self, files):
 		self.lines = []
@@ -31,7 +47,7 @@ class FileParser:
 		if matcher is None:
 			raise Exception('Line not matched: ' + line)
 
-		tokens = LineTokens()
+		tokens = Event()
 
 		tokens.startYear = matcher.group('startYear')
 		tokens.startMonth = matcher.group('startMonth')
@@ -66,7 +82,12 @@ class FileParser:
 		for filename in self.files:
 		    for line in open(filename):
 			  self.addLine(line)
-		
+
+	def addLines(self, lines):
+		for line in lines:
+			#print "reading line: " + line
+			self.addLine(line)
+	
 	def addLine(self, line):
 		if line != "" and self.ignoredLineRegex.match(line) is None:
 			self.lines.append(line)
@@ -74,7 +95,7 @@ class FileParser:
 	def getEventsFromLoadedFiles(self, date):
 		return self.getEvents(self.lines, date)
 
-	def getEvents(self, date):
+	def getEvents(self):
 		events = []
 		for line in self.lines:
 			eventTokens = self.parseLine(line)
@@ -90,8 +111,11 @@ class Model:
 	  
 	def getEvents(self, date):
 		self.parser.reloadEvents()
+		return self.readEventsFromParser(date)
+
+	def readEventsFromParser(self, date):
 		events = []
-		for eventTokens in self.parser.getEvents(date):
+		for eventTokens in self.parser.getEvents():
 		    if self.showEvent(eventTokens, date):
 			events.append(eventTokens)
 		return sorted(events, key=lambda event: event.startDate)
@@ -119,9 +143,8 @@ class GetClosestEventsModel(Model):
 		Model.__init__(self, parser)
 		self.eventCount = eventCount
 
-	def getEvents(self, date):
-		self.parser.reloadEvents()
-		events = sorted(map(lambda event: (self.dateDistance(date, event), event), self.parser.getEvents(date))) #, key=lambda event: self.dateDistance(date, event))#
+	def readEventsFromParser(self, date):
+		events = sorted(map(lambda event: (self.dateDistance(date, event), event), self.parser.getEvents())) 
 		selectedEvents = []
 		counter = 0
 		for (diff, event) in events:

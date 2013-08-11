@@ -1,7 +1,7 @@
 import wx
 import datetime
 
-from model import GetClosestEventsModel, FileParser
+from model import GetClosestEventsModel, TextFileParser
 from view import View
 import config
 
@@ -15,7 +15,7 @@ class Controller:
 		view.show()
 
 if __name__ == '__main__':
-	parser = FileParser(config.eventFiles)
+	parser = TextFileParser(config.eventFiles)
 	model = GetClosestEventsModel(parser, config.minNumberOfEvents)
 	view = View(model)
 	controller = Controller(model, view)
