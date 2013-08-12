@@ -4,8 +4,9 @@ import datetime
 
 class Event:
 
-	def __init__(self, eventName = None, startDate = None, endDate = None):
+	def __init__(self, eventName = None, category = None, startDate = None, endDate = None):
 	    self.eventName = eventName
+	    self.category = category
 	    
 	    if startDate is not None:
 		    self.startDate = startDate
@@ -15,22 +16,9 @@ class Event:
 
 		    self.endDate = endDate if endDate is not None else startDate
 		    self.endYear = endDate.year if endDate is not None else startDate.year
-	            self.endMonth = endDate.month if endDate is not None else startDate.month
+		    self.endMonth = endDate.month if endDate is not None else startDate.month
 		    self.endDay = endDate.day if endDate is not None else startDate.day
-		
-
-	eventName = None
-
-	startYear = None
-	startMonth = None
-	startDay = None
-	startDate = None
-
-	endYear = None
-	endMonth = None
-	endDay = None
-	endDate = None
-
+	
 class TextFileParser:
   
 	def __init__(self, files):
@@ -39,7 +27,9 @@ class TextFileParser:
 		self.ignoredLineRegex = re.compile('^\s*$|^\s*\#.*$') # ignore empty lines and comments
 		self.validEventLineRegex = re.compile("^(?P<startYear>\d{4})-(?P<startMonth>\d{2})-(?P<startDay>\d{2})\s*" 
 			+ "(-\s*(?P<endYear>\d{4})-(?P<endMonth>\d{2})-(?P<endDay>\d{2})\s*)?" 
-			+ ":\s*" 
+			+ ":\s*"
+			+ "(?P<category>\w+)\s*"
+			+ ":\s*"
 			+ "(?P<event>.*)$", re.VERBOSE)
   
 	def parseLine(self, line):		
@@ -58,6 +48,7 @@ class TextFileParser:
 		tokens.endDay = matcher.group('endDay')
 
 		tokens.eventName = matcher.group('event')
+		tokens.category = matcher.group('category')
 
 		try:
 			tokens.startDate = datetime.date(int(tokens.startYear), int(tokens.startMonth), int(tokens.startDay))		
@@ -85,7 +76,6 @@ class TextFileParser:
 
 	def addLines(self, lines):
 		for line in lines:
-			#print "reading line: " + line
 			self.addLine(line)
 	
 	def addLine(self, line):
@@ -99,7 +89,6 @@ class TextFileParser:
 		events = []
 		for line in self.lines:
 			eventTokens = self.parseLine(line)
-			#if self.showEvent(eventTokens, date):
 			events.append(eventTokens)
 		return events
 
