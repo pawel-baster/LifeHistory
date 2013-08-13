@@ -76,21 +76,16 @@ class TextFileParser:
 
     def addLines(self, lines):
         for line in lines:
-            #print "reading line: " + line
             self.addLine(line)
     
     def addLine(self, line):
         if line != "" and self.ignoredLineRegex.match(line) is None:
             self.lines.append(line)
 
-    def getEventsFromLoadedFiles(self, date):
-        return self.getEvents(self.lines, date)
-
     def getEvents(self):
         events = []
         for line in self.lines:
             eventTokens = self.parseLine(line)
-            #if self.showEvent(eventTokens, date):
             events.append(eventTokens)
         return events
 
@@ -100,22 +95,14 @@ class Model:
     def __init__(self, parser):
         self.parser = parser
       
-    def getEvents(self, date):
-        self.parser.reloadEvents()
-        return self.readEventsFromParser(date)
-
-    def readEventsFromParser(self, date):
-        events = {}
+    def getEvents(self, type, date, reload=False):
+        if reload:
+            self.parser.reloadEvents()
+        events = []
         for event in self.parser.getEvents():
-            if self.showEvent(event, date):
-                if event.type in events:
-                    events[event.type].append(event)
-                else: 
-                    events[event.type] = [event]
-        for type in events:
-            events[type] = sorted(events[type], key=lambda event: event.startDate)
-        return events
-        
+            if event.type == type and self.showEvent(event, date):
+                events.append(event)
+        return sorted(events, key=lambda event: event.startDate)
 
     def showEvent(self, tokens, date):
         return self.isDateWithinRange(tokens.startDate, tokens.endDate, date)
@@ -140,8 +127,11 @@ class GetClosestEventsModel(Model):
         Model.__init__(self, parser)
         self.eventCount = eventCount
 
-    def readEventsFromParser(self, date):
-        events = sorted(map(lambda event: (self.dateDistance(date, event), event), self.parser.getEvents())) 
+    def getEvents(self, type, date, reload=False):
+        if reload:
+            self.parser.reloadEvents()
+        events = [event for event in self.parser.getEvents() if event.type == type]
+        events = sorted(map(lambda event: (self.dateDistance(date, event), event), events)) 
         selectedEvents = []
         counter = 0
         for (diff, event) in events:

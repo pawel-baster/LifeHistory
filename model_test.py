@@ -70,16 +70,16 @@ class ModelTest(unittest.TestCase):
         """Test returning one day events"""
         type = 'type1'
         events = [Event('Single event 1', type, datetime.date(2012, 2, 20)),
-        Event('Single event 2', type, datetime.date(2012, 2, 20)),
-        Event('Single event 3', type, datetime.date(2012, 2, 21))]
+            Event('Single event 2', type, datetime.date(2012, 2, 20)),
+            Event('Single event 3', type, datetime.date(2012, 2, 21))]
         parser = MockParser(events)
         model = Model(parser)
-        self.assertEquals(0, len(model.readEventsFromParser(datetime.date(2012, 2, 19))))
-        self.assertEquals(2, len(model.readEventsFromParser(datetime.date(2012, 2, 20))[type]))
-        events3 = model.readEventsFromParser(datetime.date(2012, 2, 21))
+        self.assertEquals(0, len(model.getEvents(type, datetime.date(2012, 2, 19))))
+        self.assertEquals(2, len(model.getEvents(type, datetime.date(2012, 2, 20))))
+        events3 = model.getEvents(type, datetime.date(2012, 2, 21))
         self.assertEquals(1, len(events3))
-        self.assertEquals('Single event 3', events3[type][0].eventName)
-        self.assertEquals(0, len(model.readEventsFromParser(datetime.date(2012, 2, 22))))
+        self.assertEquals('Single event 3', events3[0].eventName)
+        self.assertEquals(0, len(model.getEvents(type, datetime.date(2012, 2, 22))))
 
     def testGetEventDifferentCategories(self):
         """Test retrieving from different types"""
@@ -87,8 +87,9 @@ class ModelTest(unittest.TestCase):
             Event('Single event 2', 'type2', datetime.date(2012, 2, 20))]
         parser = MockParser(events)
         model = Model(parser)
-        self.assertEquals(1, len(model.readEventsFromParser(datetime.date(2012, 2, 20))['type1']))
-        self.assertEquals(1, len(model.readEventsFromParser(datetime.date(2012, 2, 20))['type2']))
+        self.assertEquals(1, len(model.getEvents('type1', datetime.date(2012, 2, 20))))
+        self.assertEquals(1, len(model.getEvents('type2', datetime.date(2012, 2, 20))))
+        self.assertEquals(0, len(model.getEvents('type3', datetime.date(2012, 2, 20))))
 
     def testGetEvent2(self):
         """Test retrieving multi day events"""
@@ -98,14 +99,14 @@ class ModelTest(unittest.TestCase):
         Event('Single event 3', type, datetime.date(2012, 2, 20), datetime.date(2012, 2, 26))]
         parser = MockParser(events)
         model = Model(parser)
-        #print model.readEventsFromParser(datetime.date(2012, 2, 10))['type1']
-        self.assertEquals(0, len(model.readEventsFromParser(datetime.date(2012, 2, 9))))
-        self.assertEquals(1, len(model.readEventsFromParser(datetime.date(2012, 2, 10))[type]))
-        self.assertEquals(2, len(model.readEventsFromParser(datetime.date(2012, 2, 15))[type]))
-        self.assertEquals(3, len(model.readEventsFromParser(datetime.date(2012, 2, 20))[type]))
-        self.assertEquals(2, len(model.readEventsFromParser(datetime.date(2012, 2, 25))[type]))
-        self.assertEquals(1, len(model.readEventsFromParser(datetime.date(2012, 2, 26))[type]))
-        self.assertEquals(0, len(model.readEventsFromParser(datetime.date(2012, 2, 27))))
+        #print model.getEvents(type, datetime.date(2012, 2, 10))['type1']
+        self.assertEquals(0, len(model.getEvents(type, datetime.date(2012, 2, 9))))
+        self.assertEquals(1, len(model.getEvents(type, datetime.date(2012, 2, 10))))
+        self.assertEquals(2, len(model.getEvents(type, datetime.date(2012, 2, 15))))
+        self.assertEquals(3, len(model.getEvents(type, datetime.date(2012, 2, 20))))
+        self.assertEquals(2, len(model.getEvents(type, datetime.date(2012, 2, 25))))
+        self.assertEquals(1, len(model.getEvents(type, datetime.date(2012, 2, 26))))
+        self.assertEquals(0, len(model.getEvents(type, datetime.date(2012, 2, 27))))
     
     def testGetEvent3(self):
         """Test retrieving a multi-day event when it has different start and end dates"""
@@ -114,13 +115,13 @@ class ModelTest(unittest.TestCase):
         parser = MockParser(events)
         model = Model(parser)
 
-        self.assertEquals(0, len(model.readEventsFromParser(datetime.date(2011, 11, 30))))
-        self.assertEquals(1, len(model.readEventsFromParser(datetime.date(2011, 12, 1))[type]))
-        self.assertEquals(1, len(model.readEventsFromParser(datetime.date(2011, 12, 31))[type]))
-        self.assertEquals(1, len(model.readEventsFromParser(datetime.date(2012, 1, 1))[type]))
-        self.assertEquals(1, len(model.readEventsFromParser(datetime.date(2012, 1, 30))[type]))
-        self.assertEquals(0, len(model.readEventsFromParser(datetime.date(2012, 2, 1))))
-        self.assertEquals(0, len(model.readEventsFromParser(datetime.date(2012, 12, 1))))
+        self.assertEquals(0, len(model.getEvents(type, datetime.date(2011, 11, 30))))
+        self.assertEquals(1, len(model.getEvents(type, datetime.date(2011, 12, 1))))
+        self.assertEquals(1, len(model.getEvents(type, datetime.date(2011, 12, 31))))
+        self.assertEquals(1, len(model.getEvents(type, datetime.date(2012, 1, 1))))
+        self.assertEquals(1, len(model.getEvents(type, datetime.date(2012, 1, 30))))
+        self.assertEquals(0, len(model.getEvents(type, datetime.date(2012, 2, 1))))
+        self.assertEquals(0, len(model.getEvents(type, datetime.date(2012, 12, 1))))
     
     def testGetEvent4(self):
         """Test that events come in a right order"""
@@ -130,8 +131,8 @@ class ModelTest(unittest.TestCase):
         Event('Single event 1', type, datetime.date(2010, 1, 1))]
         parser = MockParser(events)
         model = Model(parser)
-        #print model.readEventsFromParser(datetime.date(2012, 2, 10))['type1']
-        events = model.readEventsFromParser(datetime.date(2013, 1, 1))[type]
+        #print model.getEvents(type, datetime.date(2012, 2, 10))['type1']
+        events = model.getEvents(type, datetime.date(2013, 1, 1))
         self.assertEquals(3, len(events))
         self.assertEquals('Single event 1', events[0].eventName)
         self.assertEquals('Single event 2', events[1].eventName)
@@ -151,13 +152,13 @@ class GetClosestEventsModelTest(unittest.TestCase):
         model = GetClosestEventsModel(parser, eventCount)
 
         # should return 2 regardless of the date
-        events = model.readEventsFromParser(datetime.date(2012, 12, 10))[type]
+        events = model.getEvents(type, datetime.date(2012, 12, 10))
         self.assertEquals(eventCount, len(events))
         self.assertEquals('Single event 1', events[0].eventName)
         self.assertEquals('Single event 2', events[1].eventName)
-        self.assertEquals(eventCount, len(model.readEventsFromParser(datetime.date(2012, 12, 11))[type]))
-        self.assertEquals(eventCount, len(model.readEventsFromParser(datetime.date(2012, 12, 12))[type]))
-        self.assertEquals(eventCount, len(model.readEventsFromParser(datetime.date(2012, 12, 13))[type]))
+        self.assertEquals(eventCount, len(model.getEvents(type, datetime.date(2012, 12, 11))))
+        self.assertEquals(eventCount, len(model.getEvents(type, datetime.date(2012, 12, 12))))
+        self.assertEquals(eventCount, len(model.getEvents(type, datetime.date(2012, 12, 13))))
 
 if __name__ == "__main__":
     unittest.main() # run all tests

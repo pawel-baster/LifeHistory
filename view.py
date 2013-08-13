@@ -55,5 +55,5 @@ class View:
         self.app.MainLoop()
         
     def updateEventsView(self):
-        events = self.model.getEvents(datetime.date.today())
+        events = self.model.getEvents('text', datetime.date.today(), True)
         self.frame.showEvents(events)
