@@ -102,13 +102,20 @@ class Model:
 		self.parser.reloadEvents()
 		return self.readEventsFromParser(date)
 
-	def readEventsFromParser(self, date):
-		events = []
-		for eventTokens in self.parser.getEvents():
-		    if self.showEvent(eventTokens, date):
-			events.append(eventTokens)
-		return sorted(events, key=lambda event: event.startDate)
+        def readEventsFromParser(self, date):
+            events = {}
+            for event in self.parser.getEvents():
+                if self.showEvent(event, date):
+                    if event.category in events:
+                        events[event.category].append(event)
+                    else: 
+                        events[event.category] = [event]
+#		events = self.sort(events)
+	    for category in events:
+	        events[category] = sorted(events[category], key=lambda event: event.startDate)
+	    return events
 		
+
 	def showEvent(self, tokens, date):
 		return self.isDateWithinRange(tokens.startDate, tokens.endDate, date)
 
