@@ -48,11 +48,14 @@ class View:
         self.model = model
   
     def show(self):
-        self.app = wx.App( False )
-        self.frame = MainWindow(self)
-        self.updateEventsView()
-        self.frame.Show()
-        self.app.MainLoop()
+        try:
+            self.app = wx.App( False )
+            self.frame = MainWindow(self)
+            self.updateEventsView()
+            self.frame.Show()
+            self.app.MainLoop()
+        except Exception, e:
+	    wx.MessageBox(str(e), 'Error', wx.OK | wx.ICON_ERROR)
         
     def updateEventsView(self):
         events = self.model.getEventsForDate(datetime.date.today())
