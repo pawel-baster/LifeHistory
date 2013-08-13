@@ -90,19 +90,11 @@ class TextFileParser:
         return events
 
     
-class Model: 
-
-    def __init__(self, parser):
-        self.parser = parser
-      
-    def getEvents(self, type, date, reload=False):
-        if reload:
-            self.parser.reloadEvents()
-        events = []
-        for event in self.parser.getEvents():
-            if event.type == type and self.showEvent(event, date):
-                events.append(event)
-        return sorted(events, key=lambda event: event.startDate)
+class SimpleEventFilter: 
+  
+    def getEvents(self, events, type, date):
+        selectedEvents = [event for event in events if event.type == type and self.showEvent(event, date)]
+        return sorted(selectedEvents, key=lambda event: event.startDate)
 
     def showEvent(self, tokens, date):
         return self.isDateWithinRange(tokens.startDate, tokens.endDate, date)
@@ -120,17 +112,14 @@ class Model:
             raise ValueError('Not more than one year difference between event start and end is allowed')        
     
 
-class GetClosestEventsModel(Model):
+class GetClosestEventsFilter(SimpleEventFilter):
     '''if the number of todays events is lower than given eventCount value, fill the list with other events by proximity'''
 
-    def __init__(self, parser, eventCount):
-        Model.__init__(self, parser)
+    def __init__(self, eventCount):
         self.eventCount = eventCount
 
-    def getEvents(self, type, date, reload=False):
-        if reload:
-            self.parser.reloadEvents()
-        events = [event for event in self.parser.getEvents() if event.type == type]
+    def getEvents(self, events, type, date):
+        events = [event for event in events if event.type == type]
         events = sorted(map(lambda event: (self.dateDistance(date, event), event), events)) 
         selectedEvents = []
         counter = 0
@@ -162,3 +151,20 @@ class GetClosestEventsModel(Model):
 
     def dayMonthDifference(self, dayMonthTouple1, dayMonthTouple2):
         return 31*(dayMonthTouple1[0] - dayMonthTouple2[0]) + (dayMonthTouple1[1] - dayMonthTouple2[1])
+
+
+class Model:
+
+    def __init__(self, parser, textFilter, imageFilter):
+        self.parser = parser
+        self.textFilter = textFilter
+        self.imageFilter = imageFilter
+        
+    def getEventsForDate(self, date):
+        self.parser.reloadEvents()
+        events = self.parser.getEvents()
+        result = {
+	  'text' : self.textFilter.getEvents(events, 'text', date),
+	  'image' : self.imageFilter.getEvents(events, 'image', date)
+	}
+	return result
