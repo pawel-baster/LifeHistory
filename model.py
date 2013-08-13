@@ -18,7 +18,7 @@ class Event:
             self.endYear = endDate.year if endDate is not None else startDate.year
             self.endMonth = endDate.month if endDate is not None else startDate.month
             self.endDay = endDate.day if endDate is not None else startDate.day
-    
+            
 class TextFileParser:
   
     def __init__(self, files):

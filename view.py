@@ -57,5 +57,3 @@ class View:
     def updateEventsView(self):
         events = self.model.getEvents(datetime.date.today())
         self.frame.showEvents(events)
-
-
