@@ -4,9 +4,9 @@ import datetime
 
 class Event:
 
-	def __init__(self, eventName = None, category = None, startDate = None, endDate = None):
+	def __init__(self, eventName = None, type = None, startDate = None, endDate = None):
 	    self.eventName = eventName
-	    self.category = category
+	    self.type = type
 	    
 	    if startDate is not None:
 		    self.startDate = startDate
@@ -28,7 +28,7 @@ class TextFileParser:
 		self.validEventLineRegex = re.compile("^(?P<startYear>\d{4})-(?P<startMonth>\d{2})-(?P<startDay>\d{2})\s*" 
 			+ "(-\s*(?P<endYear>\d{4})-(?P<endMonth>\d{2})-(?P<endDay>\d{2})\s*)?" 
 			+ ":\s*"
-			+ "(?P<category>\w+)\s*"
+			+ "(?P<type>\w+)\s*"
 			+ ":\s*"
 			+ "(?P<event>.*)$", re.VERBOSE)
   
@@ -48,7 +48,7 @@ class TextFileParser:
 		tokens.endDay = matcher.group('endDay')
 
 		tokens.eventName = matcher.group('event')
-		tokens.category = matcher.group('category')
+		tokens.type = matcher.group('type')
 
 		try:
 			tokens.startDate = datetime.date(int(tokens.startYear), int(tokens.startMonth), int(tokens.startDay))		
@@ -76,6 +76,7 @@ class TextFileParser:
 
 	def addLines(self, lines):
 		for line in lines:
+			#print "reading line: " + line
 			self.addLine(line)
 	
 	def addLine(self, line):
@@ -89,6 +90,7 @@ class TextFileParser:
 		events = []
 		for line in self.lines:
 			eventTokens = self.parseLine(line)
+			#if self.showEvent(eventTokens, date):
 			events.append(eventTokens)
 		return events
 
@@ -106,13 +108,13 @@ class Model:
             events = {}
             for event in self.parser.getEvents():
                 if self.showEvent(event, date):
-                    if event.category in events:
-                        events[event.category].append(event)
+                    if event.type in events:
+                        events[event.type].append(event)
                     else: 
-                        events[event.category] = [event]
+                        events[event.type] = [event]
 #		events = self.sort(events)
-	    for category in events:
-	        events[category] = sorted(events[category], key=lambda event: event.startDate)
+	    for type in events:
+	        events[type] = sorted(events[type], key=lambda event: event.startDate)
 	    return events
 		
 
