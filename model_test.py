@@ -27,7 +27,7 @@ class TextFileParserTest(unittest.TestCase):
     def testParseEvent(self):
         parser = TextFileParser([])
         event = parser.parseLine('2012-02-20 : type : Event 1')
-        self.assertEquals('Event 1', event.eventName)
+        self.assertEquals('Event 1', event.content)
         self.assertEquals('type', event.type, event.type)
         self.assertEquals('2012' , event.startYear)
         self.assertEquals('02', event.startMonth)
@@ -39,7 +39,7 @@ class TextFileParserTest(unittest.TestCase):
     def testParseMultiDayEvent(self):
         parser = TextFileParser([])
         event = parser.parseLine('2012-02-21 - 2012-02-22: type : Event 1')
-        self.assertEquals('Event 1', event.eventName)
+        self.assertEquals('Event 1', event.content)
         self.assertEquals('type', event.type)
         self.assertEquals('2012', event.startYear)
         self.assertEquals('02', event.startMonth)
@@ -69,7 +69,7 @@ class SimpleEventFilterTest(unittest.TestCase):
         self.assertEquals(2, len(filter.getEvents(events, type, datetime.date(2012, 2, 20))))
         events3 = filter.getEvents(events, type, datetime.date(2012, 2, 21))
         self.assertEquals(1, len(events3))
-        self.assertEquals('Single event 3', events3[0].eventName)
+        self.assertEquals('Single event 3', events3[0].content)
         self.assertEquals(0, len(filter.getEvents(events, type, datetime.date(2012, 2, 22))))
 
     def testGetEventDifferentCategories(self):
@@ -120,9 +120,9 @@ class SimpleEventFilterTest(unittest.TestCase):
         filter = SimpleEventFilter()
         events = filter.getEvents(events, type, datetime.date(2013, 1, 1))
         self.assertEquals(3, len(events))
-        self.assertEquals('Single event 1', events[0].eventName)
-        self.assertEquals('Single event 2', events[1].eventName)
-        self.assertEquals('Single event 3', events[2].eventName)
+        self.assertEquals('Single event 1', events[0].content)
+        self.assertEquals('Single event 2', events[1].content)
+        self.assertEquals('Single event 3', events[2].content)
 
 class GetClosestEventsFilterTest(unittest.TestCase):
 
@@ -139,8 +139,8 @@ class GetClosestEventsFilterTest(unittest.TestCase):
         # should return 2 regardless of the date
         events = filter.getEvents(events, type, datetime.date(2012, 12, 10))
         self.assertEquals(eventCount, len(events))
-        self.assertEquals('Single event 1', events[0].eventName)
-        self.assertEquals('Single event 2', events[1].eventName)
+        self.assertEquals('Single event 1', events[0].content)
+        self.assertEquals('Single event 2', events[1].content)
         self.assertEquals(eventCount, len(filter.getEvents(events, type, datetime.date(2012, 12, 11))))
         self.assertEquals(eventCount, len(filter.getEvents(events, type, datetime.date(2012, 12, 12))))
         self.assertEquals(eventCount, len(filter.getEvents(events, type, datetime.date(2012, 12, 13))))

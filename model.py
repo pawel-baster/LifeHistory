@@ -4,8 +4,8 @@ import datetime
 
 class Event:
     '''todo: remove redundancy in data?'''
-    def __init__(self, eventName = None, type = None, startDate = None, endDate = None):
-        self.eventName = eventName
+    def __init__(self, content = None, type = None, startDate = None, endDate = None):
+        self.content = content
         self.type = type
         
         if startDate is not None:
@@ -47,7 +47,7 @@ class TextFileParser:
         tokens.endMonth = matcher.group('endMonth')
         tokens.endDay = matcher.group('endDay')
 
-        tokens.eventName = matcher.group('event')
+        tokens.content = matcher.group('event')
         tokens.type = matcher.group('type')
 
         try:

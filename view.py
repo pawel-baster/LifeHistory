@@ -1,6 +1,7 @@
 import wx
 import config
 import datetime
+import random
 
 class MainWindow( wx.Frame ) :
 
@@ -23,13 +24,13 @@ class MainWindow( wx.Frame ) :
         self.eventWidgets = []
         
 
-    def showEvents(self, events):
+    def showEvents(self, events, images):
 
         self.panel.DestroyChildren()
         
         for event in events:
             year = wx.StaticText(self.panel, label=str(event.startDate))
-            event = wx.StaticText(self.panel, label=event.eventName)
+            event = wx.StaticText(self.panel, label=event.content)
             event.Wrap(self.GetSize().width - 80)
             rowSizer = wx.BoxSizer(wx.HORIZONTAL)
             rowSizer.Add(year, 0, wx.ALL, border=5)
@@ -38,7 +39,27 @@ class MainWindow( wx.Frame ) :
             self.eventWidgets.append(year)
             self.eventWidgets.append(event)
          
+        if len(images) > 0:
+	    random.shuffle(images)
+	    image = images.pop()
+            img = self.scaleImage(image.content)
+            imageCtrl = wx.StaticBitmap(self.panel, wx.ID_ANY, wx.BitmapFromImage(img))
+            self.topSizer.Add(imageCtrl, 0, wx.ALL, border=5)
+                 
         self.topSizer.Layout()
+    
+    def scaleImage(self, filename):
+        img = wx.Image(filename, wx.BITMAP_TYPE_ANY)
+        W = img.GetWidth()
+        H = img.GetHeight()
+        PhotoMaxSize = self.GetSize().width
+        if W > H:
+            NewW = PhotoMaxSize
+            NewH = PhotoMaxSize * H / W
+        else:
+            NewH = PhotoMaxSize
+            NewW = PhotoMaxSize * W / H
+        return img.Scale(NewW,NewH)
     
     def update(self, event):
           self.view.updateEventsView()
@@ -59,4 +80,5 @@ class View:
         
     def updateEventsView(self):
         events = self.model.getEventsForDate(datetime.date.today())
-        self.frame.showEvents(events['text'])
+        self.frame.showEvents(events['text'], events['image'])
+        #print events['image']
