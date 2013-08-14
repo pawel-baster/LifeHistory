@@ -1,6 +1,6 @@
 import unittest
 import datetime
-from model import TextFileParser, GetClosestEventsFilter, Event, SimpleEventFilter
+from model import TextFileParser, GetClosestEventsFilter, Event, SimpleEventFilter, Model
 
 class TextFileParserTest(unittest.TestCase):
 
@@ -144,6 +144,29 @@ class GetClosestEventsFilterTest(unittest.TestCase):
         self.assertEquals(eventCount, len(filter.getEvents(events, type, datetime.date(2012, 12, 11))))
         self.assertEquals(eventCount, len(filter.getEvents(events, type, datetime.date(2012, 12, 12))))
         self.assertEquals(eventCount, len(filter.getEvents(events, type, datetime.date(2012, 12, 13))))
+
+class MockParser(TextFileParser):
+    
+    def __init__(self, events):
+        self.events = events
+    
+    def reloadEvents(self):
+        pass
+    
+    def getEvents(self):
+        return self.events
+
+class ModelTest(unittest.TestCase):
+  
+    def testErrorOnCategoryNotAllowed(self):
+        mockParser = MockParser([Event('Unsupportd', 'new-type', datetime.date(2012, 12, 10))])
+        filter = SimpleEventFilter()
+        model = Model(mockParser, filter, filter)
+        self.assertRaises(Exception, model.getEventsForDate, datetime.date(2012, 12, 10))
+        model.allowedTypes = ['new-type']
+        model.getEventsForDate(datetime.date(2012, 12, 10))
+        
+        
 
 if __name__ == "__main__":
     unittest.main() # run all tests

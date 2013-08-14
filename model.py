@@ -3,7 +3,7 @@ import re
 import datetime
 
 class Event:
-
+    '''todo: remove redundancy in data?'''
     def __init__(self, eventName = None, type = None, startDate = None, endDate = None):
         self.eventName = eventName
         self.type = type
@@ -120,6 +120,7 @@ class GetClosestEventsFilter(SimpleEventFilter):
 
     def getEvents(self, events, type, date):
         events = [event for event in events if event.type == type]
+        # this can be optimized:
         events = sorted(map(lambda event: (self.dateDistance(date, event), event), events)) 
         selectedEvents = []
         counter = 0
@@ -159,10 +160,15 @@ class Model:
         self.parser = parser
         self.textFilter = textFilter
         self.imageFilter = imageFilter
+        self.allowedTypes = ['text', 'image']
         
     def getEventsForDate(self, date):
         self.parser.reloadEvents()
         events = self.parser.getEvents()
+        eventWithUnsupportedType = next((event for event in events if event.type not in self.allowedTypes), None)
+        if eventWithUnsupportedType is not None:
+            raise Exception('Unsupported event type: ' + eventWithUnsupportedType.type)
+        
         result = {
 	  'text' : self.textFilter.getEvents(events, 'text', date),
 	  'image' : self.imageFilter.getEvents(events, 'image', date)
