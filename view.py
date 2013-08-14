@@ -33,9 +33,9 @@ class MainWindow( wx.Frame ) :
             event = wx.StaticText(self.panel, label=event.content)
             event.Wrap(self.GetSize().width - 80)
             rowSizer = wx.BoxSizer(wx.HORIZONTAL)
-            rowSizer.Add(year, 0, wx.ALL, border=5)
-            rowSizer.Add(event, 0, wx.ALL, border=5)
-            self.topSizer.Add(rowSizer, 0, wx.ALL)
+            rowSizer.Add(year, 1, wx.ALL, border=5)
+            rowSizer.Add(event, 1, wx.ALL | wx.EXPAND, border=5)
+            self.topSizer.Add(rowSizer, 1, wx.ALL | wx.EXPAND)
             self.eventWidgets.append(year)
             self.eventWidgets.append(event)
          
@@ -44,7 +44,7 @@ class MainWindow( wx.Frame ) :
 	    image = images.pop()
             img = self.scaleImage(image.content)
             imageCtrl = wx.StaticBitmap(self.panel, wx.ID_ANY, wx.BitmapFromImage(img))
-            self.topSizer.Add(imageCtrl, 0, wx.ALL, border=5)
+            self.topSizer.Add(imageCtrl, 0, wx.SHAPED, border=5)
                  
         self.topSizer.Layout()
     
