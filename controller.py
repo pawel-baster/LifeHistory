@@ -2,7 +2,8 @@ import wx
 import datetime
 
 from model import GetClosestEventsFilter, SimpleEventFilter, Model, TextFileParser
-from view import View
+#from view import View
+from  frame import MyFrame
 import config
 
 class Controller:
@@ -19,7 +20,11 @@ if __name__ == '__main__':
     textFilter = GetClosestEventsFilter(config.minNumberOfEvents)
     imageFilter = SimpleEventFilter()
     model = Model(parser, textFilter, imageFilter)
-    view = View(model)
-    controller = Controller(model, view)
-    controller.run()
+    app = wx.PySimpleApp(0)
+    wx.InitAllImageHandlers()
+    frame_1 = MyFrame(model, None, -1, "")
+    app.SetTopWindow(frame_1)
+    frame_1.Show()
+    app.MainLoop()
+
 
