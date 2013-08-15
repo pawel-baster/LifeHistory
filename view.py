@@ -40,11 +40,20 @@ class MainWindow( wx.Frame ) :
             self.eventWidgets.append(event)
          
         if len(images) > 0:
-	    random.shuffle(images)
-	    image = images.pop()
-            img = self.scaleImage(image.content)
+            self.pictureId = random.randrange(len(images))
+            filename = images[self.pictureId].content
+            img = self.scaleImage(filename)
             imageCtrl = wx.StaticBitmap(self.panel, wx.ID_ANY, wx.BitmapFromImage(img))
-            self.topSizer.Add(imageCtrl, 0, wx.SHAPED, border=5)
+            self.topSizer.Add(imageCtrl, 0, wx.ALL, border=5)
+            if len(images) > 1:
+                rowSizer = wx.BoxSizer(wx.HORIZONTAL)
+                prevBtn = wx.Button(self.panel, label='<')
+                prevBtn.Bind(wx.EVT_BUTTON, None) #self.onBrowse)  
+                rowSizer.Add(prevBtn, 0, wx.ALL, border=5)
+                nextBtn = wx.Button(self.panel, label='>')
+                nextBtn.Bind(wx.EVT_BUTTON, None)  
+                rowSizer.Add(nextBtn, 0, wx.ALL, border=5)
+                self.topSizer.Add(rowSizer, 0, wx.ALL)            
                  
         self.topSizer.Layout()
     
