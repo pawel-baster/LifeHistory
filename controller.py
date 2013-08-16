@@ -3,7 +3,7 @@ import datetime
 
 from model import GetClosestEventsFilter, SimpleEventFilter, Model, TextFileParser
 #from view import View
-from  frame import MyFrame
+from mainFrame import LifeHistoryApp
 import config
 
 class Controller:
@@ -20,11 +20,14 @@ if __name__ == '__main__':
     textFilter = GetClosestEventsFilter(config.minNumberOfEvents)
     imageFilter = SimpleEventFilter()
     model = Model(parser, textFilter, imageFilter)
-    app = wx.PySimpleApp(0)
-    wx.InitAllImageHandlers()
-    frame_1 = MyFrame(model, None, -1, "")
-    app.SetTopWindow(frame_1)
-    frame_1.Show()
-    app.MainLoop()
+    #app = wx.PySimpleApp(0)
+    #wx.InitAllImageHandlers()
+    #frame_1 = LifeHistoryMainFrame(model, None, -1, "")
+    ##app.SetTopWindow(frame_1)
+    #frame_1.Show()
+    #app.MainLoop()
+    LifeHistory = LifeHistoryApp(0, model)
+    LifeHistory.MainLoop()
+
 
 
