@@ -20,9 +20,9 @@ class LifeHistoryMainFrame(wx.Frame):
         wx.Frame.__init__(self, *args, **kwds)
         self.panel_1 = wx.ScrolledWindow(self, -1, style=wx.TAB_TRAVERSAL)
         self.eventGrid = wx.grid.Grid(self.panel_1, -1, size=(1, 1))
+        self.image = wx.StaticBitmap(self, -1, wx.Bitmap("/home/pb/synced/dev/python/lifeHistory/develop/assets/sample.JPG", wx.BITMAP_TYPE_ANY))
         self.btnPrev = wx.Button(self, -1, "<")
         self.btnNext = wx.Button(self, -1, ">")
-        self.image = wx.StaticBitmap(self, -1, wx.NullBitmap)
 
         self.__set_properties()
         self.__do_layout()
@@ -34,7 +34,7 @@ class LifeHistoryMainFrame(wx.Frame):
     def __set_properties(self):
         # begin wxGlade: LifeHistoryMainFrame.__set_properties
         self.SetTitle("Life History")
-        self.SetSize((400, 500))
+        self.SetSize((400, 534))
         self.eventGrid.CreateGrid(3, 2)
         self.eventGrid.SetRowLabelSize(0)
         self.eventGrid.SetColLabelSize(0)
@@ -42,9 +42,7 @@ class LifeHistoryMainFrame(wx.Frame):
         self.eventGrid.EnableGridLines(0)
         self.eventGrid.EnableDragColSize(0)
         self.eventGrid.EnableDragRowSize(0)
-        self.eventGrid.SetBackgroundColour(wx.Colour(255, 255, 255))
-        self.eventGrid.SetForegroundColour(wx.Colour(33, 33, 33))
-        self.eventGrid.Enable(False)
+        self.eventGrid.EnableDragGridSize(0)
         self.panel_1.SetScrollRate(10, 10)
         # end wxGlade
         self.updateEvents()
@@ -52,15 +50,15 @@ class LifeHistoryMainFrame(wx.Frame):
     def __do_layout(self):
         # begin wxGlade: LifeHistoryMainFrame.__do_layout
         sizer_3 = wx.BoxSizer(wx.VERTICAL)
-        sizer_4 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1.Add(self.eventGrid, 1, wx.EXPAND, 0)
         self.panel_1.SetSizer(sizer_1)
         sizer_3.Add(self.panel_1, 1, wx.EXPAND, 0)
-        sizer_4.Add(self.btnPrev, 0, 0, 0)
-        sizer_4.Add(self.btnNext, 0, 0, 0)
-        sizer_3.Add(sizer_4, 0, wx.EXPAND, 0)
         sizer_3.Add(self.image, 0, wx.FIXED_MINSIZE, 0)
+        sizer_2.Add(self.btnPrev, 0, 0, 0)
+        sizer_2.Add(self.btnNext, 0, 0, 0)
+        sizer_3.Add(sizer_2, 0, 0, 3)
         self.SetSizer(sizer_3)
         self.Layout()
         self.Centre()
@@ -70,6 +68,7 @@ class LifeHistoryMainFrame(wx.Frame):
         self.eventGrid.SetColSize(1, width - 15)
         self.eventGrid.SetRowSize(1, 50)
         self.eventGrid.AutoSizeRow( 1 )
+        
         self.SetSizeHints(minW=400, maxW=400, minH=400)
 
     def updateEvents(self):
@@ -78,6 +77,7 @@ class LifeHistoryMainFrame(wx.Frame):
         eventTable = EventTable()
         eventTable.events = events['text']
         self.eventGrid.SetTable(eventTable)
+        self.eventGrid.SetDefaultRenderer(wx.grid.GridCellAutoWrapStringRenderer())
         self.imageList = events['image']
         if len(self.imageList ) > 0:
             self.pictureId = random.randrange(len(self.imageList ))
