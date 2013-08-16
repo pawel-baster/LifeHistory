@@ -20,12 +20,6 @@ if __name__ == '__main__':
     textFilter = GetClosestEventsFilter(config.minNumberOfEvents)
     imageFilter = SimpleEventFilter()
     model = Model(parser, textFilter, imageFilter)
-    #app = wx.PySimpleApp(0)
-    #wx.InitAllImageHandlers()
-    #frame_1 = LifeHistoryMainFrame(model, None, -1, "")
-    ##app.SetTopWindow(frame_1)
-    #frame_1.Show()
-    #app.MainLoop()
     LifeHistory = LifeHistoryApp(0, model)
     LifeHistory.MainLoop()
 

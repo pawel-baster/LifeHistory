@@ -27,10 +27,9 @@ class ImageDateExtractor:
     def __init__(self):    
         self.er = ExifReader() # TODO remove tight coupling 
 
-    def extractDates(self, path):
-    
+    def extractDates(self, path):    
         for dirpath, dirnames, files in os.walk(path):
-           for f in fnmatch.filter(files, '*.jpg'):
+           for f in [f for f in files if fnmatch.fnmatch(f.lower(), '*.jpg')]: 
                path = os.path.join(dirpath, f) 
                date = self.getDate(path)
                if date is not None:
