@@ -1,9 +1,12 @@
 import os
 import time
+from time import mktime
+from datetime import datetime
 import fnmatch
 import sys
 from PIL import Image
 from PIL.ExifTags import TAGS
+from model import Event
 
 class ExifReader:
 
@@ -27,15 +30,22 @@ class ImageDateExtractor:
     def __init__(self):    
         self.er = ExifReader() # TODO remove tight coupling 
 
-    def extractDates(self, path):    
+    def extractDates(self, path):
+    	imageEvents = []
         for dirpath, dirnames, files in os.walk(path):
            for f in [f for f in files if fnmatch.fnmatch(f.lower(), '*.jpg')]: 
                path = os.path.join(dirpath, f) 
                date = self.getDate(path)
                if date is not None:
-                   print time.strftime("%Y-%m-%d", date) + ' : image : ' + path
+                   #print time.strftime("%Y-%m-%d", date) + ' : image : ' + path
+                   dt_obj = datetime.fromtimestamp(mktime(date))
+                   imageEvents.append(Event(path, 'image', dt_obj))
                else:
                    print '# Could not extract date from: ' + path
+                   
+        for event in sorted(imageEvents, key=lambda event: event.startDate):
+            print event
+         
 
     def getDate(self, path):
         try:

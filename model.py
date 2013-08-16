@@ -1,6 +1,7 @@
 
 import re
 import datetime
+import time
 
 class Event:
     '''todo: remove redundancy in data?'''
@@ -18,6 +19,12 @@ class Event:
             self.endYear = endDate.year if endDate is not None else startDate.year
             self.endMonth = endDate.month if endDate is not None else startDate.month
             self.endDay = endDate.day if endDate is not None else startDate.day
+            
+    def __str__(self):
+    	if self.startDate == self.endDate:
+    	    return self.startDate.strftime('%Y-%m-%d') + ' : ' + self.type + ' : ' + self.content
+    	else:
+    	    return self.startDate.strftime('%Y-%m-%d') + '-' + self.endDate.strftime('%Y-%m-%d') + ' : ' + self.type + ' : ' + self.content
             
 class TextFileParser:
   

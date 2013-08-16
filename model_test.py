@@ -2,6 +2,16 @@ import unittest
 import datetime
 from model import TextFileParser, GetClosestEventsFilter, Event, SimpleEventFilter, Model
 
+class EventTest(unittest.TestCase):
+	
+    def testToString(self):
+    	event = Event('event', 'text', datetime.date(2012, 2, 21))
+    	self.assertEquals('2012-02-21 : text : event', str(event))
+    	
+    def testToString(self):
+    	event = Event('event', 'text', datetime.date(2012, 2, 21), datetime.date(2012, 2, 22))
+    	self.assertEquals('2012-02-21-2012-02-22 : text : event', str(event))
+
 class TextFileParserTest(unittest.TestCase):
 
     def testLineRead(self):
