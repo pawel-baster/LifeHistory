@@ -22,6 +22,7 @@ class LifeHistoryMainFrame(wx.Frame):
         self.panel_1 = wx.ScrolledWindow(self, -1, style=wx.TAB_TRAVERSAL)
         self.image = wx.StaticBitmap(self, -1, wx.NullBitmap)
         self.btnPrev = wx.Button(self, -1, "<")
+        self.imageCounter = wx.StaticText(self, -1, "0/1")
         self.btnNext = wx.Button(self, -1, ">")
 
         self.__set_properties()
@@ -53,6 +54,7 @@ class LifeHistoryMainFrame(wx.Frame):
         sizer_7.Add(self.image, 0, 0, 0)
         sizer_5.Add(sizer_7, 0, 0, 0)
         sizer_6.Add(self.btnPrev, 0, 0, 0)
+        sizer_6.Add(self.imageCounter, 0, wx.ALL, 5)
         sizer_6.Add(self.btnNext, 0, 0, 0)
         sizer_5.Add(sizer_6, 0, 0, 0)
         self.SetSizer(sizer_5)
@@ -61,13 +63,13 @@ class LifeHistoryMainFrame(wx.Frame):
         # end wxGlade
         self.textEventHolder = textEventHolder
         self.updateEvents()
-
+        
     def updateEvents(self):
     	print 'reading events...'
         events = self.model.getEventsForDate(datetime.date.today())
         self.displayTextEvents(events['text'])
         self.registerImageEvents(events['image'])
-        
+                
     def registerImageEvents(self, imageEvents):
         self.imageList = imageEvents
         if len(self.imageList ) > 0:
@@ -96,6 +98,7 @@ class LifeHistoryMainFrame(wx.Frame):
         filename = self.imageList[self.pictureId].content
         bitmap = self.scaleImage(filename)            
         self.image.SetBitmap(wx.BitmapFromImage(bitmap))
+        self.imageCounter.SetLabel("%d / %d" % (self.pictureId + 1, len(self.imageList)))
         # TODO: center the bitmap
             
     def scaleImage(self, filename):
