@@ -6,7 +6,6 @@ import wx
 import wx.grid
 import datetime
 import random
-from eventTable import EventTable
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -19,8 +18,7 @@ class LifeHistoryMainFrame(wx.Frame):
         kwds["style"] = wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.SYSTEM_MENU | wx.RESIZE_BORDER | wx.FRAME_NO_TASKBAR | wx.CLIP_CHILDREN
         wx.Frame.__init__(self, *args, **kwds)
         self.panel_1 = wx.ScrolledWindow(self, -1, style=wx.TAB_TRAVERSAL)
-        self.eventGrid = wx.grid.Grid(self.panel_1, -1, size=(1, 1))
-        self.image = wx.StaticBitmap(self, -1, wx.Bitmap("/home/pb/synced/dev/python/lifeHistory/develop/assets/sample.JPG", wx.BITMAP_TYPE_ANY))
+        self.image = wx.StaticBitmap(self, -1, wx.NullBitmap)
         self.btnPrev = wx.Button(self, -1, "<")
         self.btnNext = wx.Button(self, -1, ">")
 
@@ -28,55 +26,44 @@ class LifeHistoryMainFrame(wx.Frame):
         self.__do_layout()
 
         self.Bind(wx.EVT_BUTTON, self.onPrevImage, self.btnPrev)
-        self.Bind(wx.EVT_BUTTON, self.onNextImage, self.btnNext)
+        self.Bind(wx.EVT_BUTTON, self.onPrevImage, self.btnNext)
         # end wxGlade
         
     def __set_properties(self):
         # begin wxGlade: LifeHistoryMainFrame.__set_properties
         self.SetTitle("Life History")
         self.SetSize((400, 534))
-        self.eventGrid.CreateGrid(3, 2)
-        self.eventGrid.SetRowLabelSize(0)
-        self.eventGrid.SetColLabelSize(0)
-        self.eventGrid.EnableEditing(0)
-        self.eventGrid.EnableGridLines(0)
-        self.eventGrid.EnableDragColSize(0)
-        self.eventGrid.EnableDragRowSize(0)
-        self.eventGrid.EnableDragGridSize(0)
         self.panel_1.SetScrollRate(10, 10)
         # end wxGlade
-        self.updateEvents()
         
     def __do_layout(self):
         # begin wxGlade: LifeHistoryMainFrame.__do_layout
-        sizer_3 = wx.BoxSizer(wx.VERTICAL)
-        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_1.Add(self.eventGrid, 1, wx.EXPAND, 0)
-        self.panel_1.SetSizer(sizer_1)
-        sizer_3.Add(self.panel_1, 1, wx.EXPAND, 0)
-        sizer_3.Add(self.image, 0, wx.FIXED_MINSIZE, 0)
-        sizer_2.Add(self.btnPrev, 0, 0, 0)
-        sizer_2.Add(self.btnNext, 0, 0, 0)
-        sizer_3.Add(sizer_2, 0, 0, 3)
-        self.SetSizer(sizer_3)
+        sizer_5 = wx.BoxSizer(wx.VERTICAL)
+        sizer_6 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_7 = wx.BoxSizer(wx.HORIZONTAL)
+        textEventHolder = wx.BoxSizer(wx.VERTICAL)
+        self.panel_1.SetSizer(textEventHolder)
+        sizer_5.Add(self.panel_1, 1, wx.EXPAND, 0)
+        sizer_7.Add(self.image, 0, 0, 0)
+        sizer_5.Add(sizer_7, 0, 0, 0)
+        sizer_6.Add(self.btnPrev, 0, 0, 0)
+        sizer_6.Add(self.btnNext, 0, 0, 0)
+        sizer_5.Add(sizer_6, 0, 0, 0)
+        self.SetSizer(sizer_5)
         self.Layout()
         self.Centre()
         # end wxGlade
-        # extend 2nd column to fit the window size
-        width = self.eventGrid.GetClientSize().GetWidth() - self.eventGrid.GetColSize(0)
-        self.eventGrid.SetColSize(1, width - 15)
-        self.eventGrid.SetRowSize(1, 50)
-        self.eventGrid.AutoSizeRow( 1 )
+        self.textEventHolder = textEventHolder
+        self.updateEvents()
 
     def updateEvents(self):
     	print 'reading events...'
         events = self.model.getEventsForDate(datetime.date.today())
-        eventTable = EventTable()
-        eventTable.events = events['text']
-        self.eventGrid.SetTable(eventTable)
-        self.eventGrid.SetDefaultRenderer(wx.grid.GridCellAutoWrapStringRenderer())
-        self.imageList = events['image']
+        self.displayTextEvents(events['text'])
+        self.registerImageEvents(events['image'])
+        
+    def registerImageEvents(self, imageEvents):
+        self.imageList = imageEvents
         if len(self.imageList ) > 0:
             self.pictureId = random.randrange(len(self.imageList ))
             self.displaySelectedImage()
@@ -87,6 +74,17 @@ class LifeHistoryMainFrame(wx.Frame):
             self.btnNext.Hide()
             self.SetSizeHints(minW=400, maxW=400, minH=200)
             self.SetSize((400, 300))	
+
+    def displayTextEvents(self, events):
+    	#self.panel.DestroyChildren()
+        for event in events:
+            yearLabel = wx.StaticText(self.panel_1, -1, str(event.startDate))
+            eventTextLabel = wx.StaticText(self.panel_1, -1, event.content)
+            eventTextLabel.Wrap(self.GetSize().width - 120)
+            sizer = wx.BoxSizer(wx.HORIZONTAL)
+            sizer.Add(yearLabel, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+            sizer.Add(eventTextLabel, 0, wx.ALL, 5)
+            self.textEventHolder.Add(sizer, 0, 0, 11)
 
     def displaySelectedImage(self):
         filename = self.imageList[self.pictureId].content
