@@ -29,7 +29,7 @@ class LifeHistoryMainFrame(wx.Frame):
         self.__do_layout()
 
         self.Bind(wx.EVT_BUTTON, self.onPrevImage, self.btnPrev)
-        self.Bind(wx.EVT_BUTTON, self.onPrevImage, self.btnNext)
+        self.Bind(wx.EVT_BUTTON, self.onNextImage, self.btnNext)
         # end wxGlade
         self.timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.onNextImage, self.timer)
