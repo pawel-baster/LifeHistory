@@ -68,8 +68,6 @@ class LifeHistoryMainFrame(wx.Frame):
         self.eventGrid.SetColSize(1, width - 15)
         self.eventGrid.SetRowSize(1, 50)
         self.eventGrid.AutoSizeRow( 1 )
-        
-        self.SetSizeHints(minW=400, maxW=400, minH=400)
 
     def updateEvents(self):
     	print 'reading events...'
@@ -82,7 +80,14 @@ class LifeHistoryMainFrame(wx.Frame):
         if len(self.imageList ) > 0:
             self.pictureId = random.randrange(len(self.imageList ))
             self.displaySelectedImage()
-            
+            self.SetSizeHints(minW=400, maxW=400, minH=400)
+        else:
+            self.image.Hide()
+            self.btnPrev.Hide()
+            self.btnNext.Hide()
+            self.SetSizeHints(minW=400, maxW=400, minH=200)
+            self.SetSize((400, 300))	
+
     def displaySelectedImage(self):
         filename = self.imageList[self.pictureId].content
         bitmap = self.scaleImage(filename)            
