@@ -35,6 +35,7 @@ class LifeHistoryMainFrame(wx.Frame):
         self.SetSize((400, 534))
         self.panel_1.SetScrollRate(10, 10)
         # end wxGlade
+        # TODO: reload every x minutes
         
     def __do_layout(self):
         # begin wxGlade: LifeHistoryMainFrame.__do_layout

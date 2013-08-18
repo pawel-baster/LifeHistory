@@ -79,7 +79,7 @@ class TextFileParser:
         self.lines = []
         for filename in self.files:
             for line in open(filename):
-              self.addLine(line)
+              self.addLine(unicode(line, 'utf-8'))
 
     def addLines(self, lines):
         for line in lines:
