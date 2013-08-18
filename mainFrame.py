@@ -7,6 +7,8 @@ import wx.grid
 import datetime
 import random
 
+import config
+
 # begin wxGlade: extracode
 # end wxGlade
 
@@ -28,6 +30,9 @@ class LifeHistoryMainFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.onPrevImage, self.btnPrev)
         self.Bind(wx.EVT_BUTTON, self.onPrevImage, self.btnNext)
         # end wxGlade
+        self.timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.onNextImage, self.timer)
+        self.timer.Start(config.slideshowInterval * 1000)
         
     def __set_properties(self):
         # begin wxGlade: LifeHistoryMainFrame.__set_properties
@@ -66,7 +71,7 @@ class LifeHistoryMainFrame(wx.Frame):
     def registerImageEvents(self, imageEvents):
         self.imageList = imageEvents
         if len(self.imageList ) > 0:
-            self.pictureId = random.randrange(len(self.imageList ))
+            self.pictureId = 0 #random.randrange(len(self.imageList ))
             self.displaySelectedImage()
             self.SetSizeHints(minW=400, maxW=400, minH=400)
         else:

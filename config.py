@@ -1,3 +1,8 @@
-eventFiles = ['/home/pb/Dropbox/lifeHistory/pb.txt', '/home/pb/Dropbox/lifeHistory/phb.txt', '/home/pb/synced/dev/python/lifeHistory/develop/data/image-events.txt']
+# files including events to show
+eventFiles = ['events-test.txt']
+# refresh the event list every x amount of seconds:
 refreshRate = 300
+# how many items should be displayed:
 minNumberOfEvents = 5
+# how often should the next image be shown:
+slideshowInterval = 30
