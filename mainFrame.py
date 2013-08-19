@@ -24,6 +24,7 @@ class LifeHistoryMainFrame(wx.Frame):
         self.btnPrev = wx.Button(self, -1, "<")
         self.imageCounter = wx.StaticText(self, -1, "0/1")
         self.btnNext = wx.Button(self, -1, ">")
+        self.imageDescription = wx.StaticText(self, -1, "")
 
         self.__set_properties()
         self.__do_layout()
@@ -56,6 +57,7 @@ class LifeHistoryMainFrame(wx.Frame):
         sizer_6.Add(self.btnPrev, 0, 0, 0)
         sizer_6.Add(self.imageCounter, 0, wx.ALL, 5)
         sizer_6.Add(self.btnNext, 0, 0, 0)
+        sizer_6.Add(self.imageDescription, 0, wx.ALL, 5)
         sizer_5.Add(sizer_6, 0, 0, 0)
         self.SetSizer(sizer_5)
         self.Layout()
@@ -100,6 +102,7 @@ class LifeHistoryMainFrame(wx.Frame):
         bitmap = self.scaleImage(filename)            
         self.image.SetBitmap(wx.BitmapFromImage(bitmap))
         self.imageCounter.SetLabel("%d / %d" % (self.pictureId + 1, len(self.imageList)))
+        self.imageDescription.SetLabel(str(self.imageList[self.pictureId].startDate))
         # TODO: center the bitmap
             
     def scaleImage(self, filename):
