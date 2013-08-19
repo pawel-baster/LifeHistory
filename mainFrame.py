@@ -80,6 +80,7 @@ class LifeHistoryMainFrame(wx.Frame):
             self.image.Hide()
             self.btnPrev.Hide()
             self.btnNext.Hide()
+            self.imageCounter.Hide()
             self.SetSizeHints(minW=400, maxW=400, minH=200)
             self.SetSize((400, 300))	
 
