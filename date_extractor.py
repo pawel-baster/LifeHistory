@@ -4,8 +4,10 @@ from time import mktime
 from datetime import datetime
 import fnmatch
 import sys
+import re
 from PIL import Image
 from PIL.ExifTags import TAGS
+
 from model import Event
 
 class ExifReader:
@@ -54,9 +56,22 @@ class ImageDateExtractor:
                 return self.parseDate(exifData['DateTimeOriginal'])
             if 'DateTimeDigitized' in exifData:
                 return self.parseDate(exifData['DateTimeDigitized'])
+            date = self.getDateFromPath(path)
+            if date is not None:
+            	return date
             return None
         except:
 	    return None
+        
+    def getDateFromPath(self, path):
+    	dirname = os.path.basename(os.path.dirname(path))
+    	regexps = [('(\d{4}-\d{2}-\d{2})', '%Y-%m-%d'),
+    	    ('(\d{2}\.\d{2}\.\d{2})', '%d.%m.%y')]
+    	for regexp, date_format in regexps:
+    	    matcher = re.search(regexp, path)
+            if matcher is not None:
+               return time.strptime(matcher.group(0), date_format)
+    	return None
         
     def parseDate(self, string):
         try:
