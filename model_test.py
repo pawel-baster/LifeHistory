@@ -16,26 +16,22 @@ class TextFileParserTest(unittest.TestCase):
 
     def testLineRead(self):
         """single line"""
-        parser = TextFileParser([])
+        parser = TextFileParser()
         eventLine1 = '2012-02-20 : type : Event 1'
-        parser.addLine(eventLine1)
-        self.assertEquals(1, len(parser.lines))
-        self.assertEquals(eventLine1, parser.lines[0])
+        events = parser.readLines([eventLine1])
+        self.assertEquals(1, len(events))
+        self.assertEquals('Event 1', events[0].content)
 
     def testEmptyLinesAndComments(self):
         """empty lines and comments"""
-        parser = TextFileParser([])
-        parser.addLine('')
-        parser.addLine(' ')
-        parser.addLine(' # comment')
-        parser.addLine('# comment')
+        parser = TextFileParser()
         eventLine = '2012-02-20 : type : Test event'
-        parser.addLine(eventLine)
-        self.assertEquals(1, len(parser.lines))
-        self.assertEquals(eventLine, parser.lines[0])
+        events = parser.readLines(['', ' ', ' # comment', '#comment', eventLine])
+        self.assertEquals(1, len(events))
+        self.assertEquals('Test event', events[0].content)
 
     def testParseEvent(self):
-        parser = TextFileParser([])
+        parser = TextFileParser()
         event = parser.parseLine('2012-02-20 : type : Event 1')
         self.assertEquals('Event 1', event.content)
         self.assertEquals('type', event.type, event.type)
@@ -47,7 +43,7 @@ class TextFileParserTest(unittest.TestCase):
         self.assertEquals(None, event.endDay)
 
     def testParseMultiDayEvent(self):
-        parser = TextFileParser([])
+        parser = TextFileParser()
         event = parser.parseLine('2012-02-21 - 2012-02-22: type : Event 1')
         self.assertEquals('Event 1', event.content)
         self.assertEquals('type', event.type)
@@ -59,7 +55,7 @@ class TextFileParserTest(unittest.TestCase):
         self.assertEquals('22', event.endDay)
 
     def testInvalidDateHandling(self):
-        parser = TextFileParser([])
+        parser = TextFileParser()
         try:
             event = parser.parseLine('2012-02-22 - 2012-02-20 : type : Event 1')    
         except ValueError:
@@ -141,16 +137,21 @@ class GetClosestEventsFilterTest(unittest.TestCase):
         type = 'type1'
         events = [Event('Single event 1', type, datetime.date(2012, 2, 10)),
             Event('Single event 2', type, datetime.date(2012, 2, 11)),
-            Event('Single event 3', type, datetime.date(2012, 2, 12))]
+            Event('Single event 3', type, datetime.date(2012, 2, 9)),
+            Event('Single event 4', type, datetime.date(2012, 2, 12)),
+            Event('Single event 5', type, datetime.date(2012, 2, 13))]
 
-        eventCount = 2
+        eventCount = 4
         filter = GetClosestEventsFilter(eventCount)
 
         # should return 2 regardless of the date
         events = filter.getEvents(events, type, datetime.date(2012, 12, 10))
         self.assertEquals(eventCount, len(events))
+        #for event in events: print str(event)
         self.assertEquals('Single event 1', events[0].content)
         self.assertEquals('Single event 2', events[1].content)
+        self.assertEquals('Single event 3', events[2].content)
+        self.assertEquals('Single event 4', events[3].content)
         self.assertEquals(eventCount, len(filter.getEvents(events, type, datetime.date(2012, 12, 11))))
         self.assertEquals(eventCount, len(filter.getEvents(events, type, datetime.date(2012, 12, 12))))
         self.assertEquals(eventCount, len(filter.getEvents(events, type, datetime.date(2012, 12, 13))))
@@ -160,10 +161,7 @@ class MockParser(TextFileParser):
     def __init__(self, events):
         self.events = events
     
-    def reloadEvents(self):
-        pass
-    
-    def getEvents(self):
+    def readFiles(self, files):
         return self.events
 
 class ModelTest(unittest.TestCase):
@@ -171,7 +169,7 @@ class ModelTest(unittest.TestCase):
     def testErrorOnCategoryNotAllowed(self):
         mockParser = MockParser([Event('Unsupportd', 'new-type', datetime.date(2012, 12, 10))])
         filter = SimpleEventFilter()
-        model = Model(mockParser, filter, filter)
+        model = Model(mockParser, filter, filter, [])
         self.assertRaises(Exception, model.getEventsForDate, datetime.date(2012, 12, 10))
         model.allowedTypes = ['new-type']
         model.getEventsForDate(datetime.date(2012, 12, 10))

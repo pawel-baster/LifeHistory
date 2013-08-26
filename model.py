@@ -28,9 +28,7 @@ class Event:
             
 class TextFileParser:
   
-    def __init__(self, files):
-        self.lines = []
-        self.files = files
+    def __init__(self):
         self.ignoredLineRegex = re.compile('^\s*$|^\s*\#.*$') # ignore empty lines and comments
         self.validEventLineRegex = re.compile("^(?P<startYear>\d{4})-(?P<startMonth>\d{2})-(?P<startDay>\d{2})\s*" 
             + "(-\s*(?P<endYear>\d{4})-(?P<endMonth>\d{2})-(?P<endDay>\d{2})\s*)?" 
@@ -39,62 +37,52 @@ class TextFileParser:
             + ":\s*"
             + "(?P<event>.*)$", re.VERBOSE)
   
+    def readFiles(self, files):
+        lines = []
+        for filename in files:
+            for line in open(filename):
+                lines.append(unicode(line, 'utf-8'))
+                
+        return self.readLines(lines)
+  
+    def readLines(self, lines):
+        return [self.parseLine(line) for line in lines if line != "" and self.ignoredLineRegex.match(line) is None]
+  
     def parseLine(self, line):        
         matcher = self.validEventLineRegex.match(line)
         if matcher is None:
             raise Exception('Line not matched: ' + line)
 
-        tokens = Event()
+        event = Event()
 
-        tokens.startYear = matcher.group('startYear')
-        tokens.startMonth = matcher.group('startMonth')
-        tokens.startDay = matcher.group('startDay')
+        event.startYear = matcher.group('startYear')
+        event.startMonth = matcher.group('startMonth')
+        event.startDay = matcher.group('startDay')
 
-        tokens.endYear = matcher.group('endYear')
-        tokens.endMonth = matcher.group('endMonth')
-        tokens.endDay = matcher.group('endDay')
+        event.endYear = matcher.group('endYear')
+        event.endMonth = matcher.group('endMonth')
+        event.endDay = matcher.group('endDay')
 
-        tokens.content = matcher.group('event')
-        tokens.type = matcher.group('type')
+        event.content = matcher.group('event')
+        event.type = matcher.group('type')
 
         try:
-            tokens.startDate = datetime.date(int(tokens.startYear), int(tokens.startMonth), int(tokens.startDay))        
+            event.startDate = datetime.date(int(event.startYear), int(event.startMonth), int(event.startDay))        
         except ValueError: 
-            raise ValueError("Could not parse start date: %s-%s-%s" % (tokens.startYear, tokens.startMonth, tokens.startDay))
+            raise ValueError("Could not parse start date: %s-%s-%s" % (event.startYear, event.startMonth, event.startDay))
     
-        if tokens.endYear != None and tokens.endMonth != None and tokens.endDay != None:
+        if event.endYear != None and event.endMonth != None and event.endDay != None:
             try:
-                tokens.endDate = datetime.date(int(tokens.endYear), int(tokens.endMonth), int(tokens.endDay))        
+                event.endDate = datetime.date(int(event.endYear), int(event.endMonth), int(event.endDay))        
             except ValueError: 
-                raise ValueError("Could not parse end date: %d-%d-%d" % (int(tokens.endYear), int(tokens.endMonth), int(tokens.endDay)))
+                raise ValueError("Could not parse end date: %d-%d-%d" % (int(event.endYear), int(event.endMonth), int(event.endDay)))
                 
-            if tokens.startDate > tokens.endDate:
+            if event.startDate > event.endDate:
                 raise ValueError('Start date after end date')                
         else:
-            tokens.endDate = tokens.startDate
+            event.endDate = event.startDate
 
-        return tokens
-            
-    def reloadEvents(self):
-        self.lines = []
-        for filename in self.files:
-            for line in open(filename):
-              self.addLine(unicode(line, 'utf-8'))
-
-    def addLines(self, lines):
-        for line in lines:
-            self.addLine(line)
-    
-    def addLine(self, line):
-        if line != "" and self.ignoredLineRegex.match(line) is None:
-            self.lines.append(line)
-
-    def getEvents(self):
-        events = []
-        for line in self.lines:
-            eventTokens = self.parseLine(line)
-            events.append(eventTokens)
-        return events
+        return event
 
     
 class SimpleEventFilter: 
@@ -163,15 +151,15 @@ class GetClosestEventsFilter(SimpleEventFilter):
 
 class Model:
 
-    def __init__(self, parser, textFilter, imageFilter):
+    def __init__(self, parser, textFilter, imageFilter, files):
         self.parser = parser
         self.textFilter = textFilter
         self.imageFilter = imageFilter
         self.allowedTypes = ['text', 'image']
+        self.files = files
         
     def getEventsForDate(self, date):
-        self.parser.reloadEvents()
-        events = self.parser.getEvents()
+        events = self.parser.readFiles(self.files)
         eventWithUnsupportedType = next((event for event in events if event.type not in self.allowedTypes), None)
         if eventWithUnsupportedType is not None:
             raise Exception('Unsupported event type: ' + eventWithUnsupportedType.type)
