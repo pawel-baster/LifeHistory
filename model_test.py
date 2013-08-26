@@ -137,17 +137,16 @@ class GetClosestEventsFilterTest(unittest.TestCase):
         type = 'type1'
         events = [Event('Single event 1', type, datetime.date(2012, 2, 10)),
             Event('Single event 2', type, datetime.date(2012, 2, 11)),
-            Event('Single event 3', type, datetime.date(2012, 2, 9)),
-            Event('Single event 4', type, datetime.date(2012, 2, 12)),
-            Event('Single event 5', type, datetime.date(2012, 2, 13))]
+            Event('Single event 3', type, datetime.date(2012, 2, 8)),
+            Event('Single event 4', type, datetime.date(2012, 2, 13)),
+            Event('Single event 5', type, datetime.date(2012, 2, 14))]
 
         eventCount = 4
         filter = GetClosestEventsFilter(eventCount)
 
         # should return 2 regardless of the date
-        events = filter.getEvents(events, type, datetime.date(2012, 12, 10))
+        events = filter.getEvents(events, type, datetime.date(2013, 2, 10))
         self.assertEquals(eventCount, len(events))
-        #for event in events: print str(event)
         self.assertEquals('Single event 1', events[0].content)
         self.assertEquals('Single event 2', events[1].content)
         self.assertEquals('Single event 3', events[2].content)

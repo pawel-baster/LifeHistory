@@ -117,6 +117,7 @@ class GetClosestEventsFilter(SimpleEventFilter):
         events = [event for event in events if event.type == type]
         # this can be optimized:
         events = sorted(map(lambda event: (self.dateDistance(date, event), event), events)) 
+        #events = sorted(events, key=lambda event: self.dateDistance(date, event))
         selectedEvents = []
         counter = 0
         for (diff, event) in events:
@@ -126,7 +127,7 @@ class GetClosestEventsFilter(SimpleEventFilter):
             else:
                 break
                     
-        return sorted(selectedEvents, key=lambda event: event.startDate)
+        return sorted(selectedEvents, key=lambda event: event.startYear)
             
     def dateDistance(self, date, event):
 
@@ -146,8 +147,15 @@ class GetClosestEventsFilter(SimpleEventFilter):
             return self.dayMonthDifference(dateDayMonth, endDayMonth)
 
     def dayMonthDifference(self, dayMonthTouple1, dayMonthTouple2):
-        return 31*(dayMonthTouple1[0] - dayMonthTouple2[0]) + (dayMonthTouple1[1] - dayMonthTouple2[1])
-
+        if dayMonthTouple1 > dayMonthTouple2:
+            bigger = dayMonthTouple1
+            smaller = dayMonthTouple2
+        else:
+	    bigger = dayMonthTouple2
+	    smaller = dayMonthTouple1
+	    
+        return 31*(bigger[0] - smaller[0]) + (bigger[1] - smaller[1])
+        
 
 class Model:
 
