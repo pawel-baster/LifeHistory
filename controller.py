@@ -3,7 +3,7 @@ import wx
 import datetime
 
 from model import GetClosestEventsFilter, SimpleEventFilter, Model, TextFileParser
-#from view import View
+from rescan_controller import RescanController, SimpleDateReader
 from mainFrame import LifeHistoryApp
 import config
 
@@ -25,8 +25,8 @@ if __name__ == '__main__':
         LifeHistory = LifeHistoryApp(0, model)
         LifeHistory.MainLoop()
     elif len(sys.argv) == 2 and sys.argv[1] == 'rescan':
-        controller = RescanController(config.imageFolders, parser)
-        controller.rescan()
+        controller = RescanController(config.imageFolders, parser, SimpleDateReader())
+        controller.rescan_all()
     else:
         print 'incorrect arguments'
 
