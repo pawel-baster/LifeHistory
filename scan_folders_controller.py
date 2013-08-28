@@ -8,7 +8,7 @@ import time
 import datetime
 
 from model import Event
-from scan_dialog import DatePickerDialog
+from scan_folder_dialog import DatePickerDialog
 
 class RescanController:
    
@@ -34,14 +34,15 @@ class RescanController:
            event = Event(path, 'image', dt_obj)
            lines.append(str(event))
        
-       userDates = self.promptForDates(imagesWithoutDates)
+       if len(imagesWithoutDates) > 0:
+           userDates = self.promptForDates(imagesWithoutDates)
        
-       for path, date in userDates:
-           if date is not None:
-               event = Event(path, 'image', date)
-               lines.append(str(event))
-           else:
-               lines.append("# Could not find date for " + path)
+           for path, date in userDates:
+               if date is not None:
+                  event = Event(path, 'image', date)
+                  lines.append(str(event))
+               else:
+                  lines.append("# Could not find date for " + path)
                
        with open(filename, 'w') as f:
            for line in lines:
@@ -86,7 +87,7 @@ class RescanController:
 class SimpleDateReader:
     
     def get_date(self, path):
-        #try:
+        try:
             exifData = self.get_exif_data(path)
             if 'DateTimeOriginal' in exifData:
                 return self.parse_date(exifData['DateTimeOriginal'])
@@ -96,8 +97,8 @@ class SimpleDateReader:
             #if date is not None:
             #	return date
             return None
-        #except:
-	#    return None
+        except:
+	    return None
     
     def get_exif_data(self, fname):
         """Get embedded EXIF data from image file."""

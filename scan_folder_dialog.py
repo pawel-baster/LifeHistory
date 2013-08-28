@@ -19,6 +19,7 @@ class DatePickerDialog(wx.Dialog):
         self.bitmap_1 = wx.StaticBitmap(self, -1, wx.NullBitmap)
         self.label_1 = wx.StaticText(self, -1, "Date:")
         self.dateCtrl = wx.DatePickerCtrl(self, -1)
+        self.pathLabel = wx.StaticText(self, -1, "path")
         self.button_1 = wx.Button(self, -1, "Save")
         self.button_2 = wx.Button(self, -1, "Skip")
         self.button_3 = wx.Button(self, -1, "Skip All")
@@ -47,6 +48,7 @@ class DatePickerDialog(wx.Dialog):
         sizer_1.Add(self.bitmap_1, 0, 0, 0)
         sizer_3.Add(self.label_1, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
         sizer_3.Add(self.dateCtrl, 0, wx.ALL, 5)
+        sizer_3.Add(self.pathLabel, 1, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
         sizer_1.Add(sizer_3, 0, wx.EXPAND, 0)
         sizer_2.Add(self.button_1, 0, 0, 0)
         sizer_2.Add(self.button_2, 0, 0, 0)
@@ -80,9 +82,12 @@ class DatePickerDialog(wx.Dialog):
     def showImage(self, imageId):
         if self.images[self.currentImage][1] is not None:
             self.dateCtrl.SetValue(self.images[self.currentImage][1])
-        bitmap = wx.Bitmap(self.images[self.currentImage][0])    
+        path = self.images[self.currentImage][0]
+        bitmap = wx.Bitmap(path)    
         image = self.scaleImage(self.images[self.currentImage][0], 600, 400)
         self.bitmap_1.SetBitmap(wx.BitmapFromImage(image))
+        self.pathLabel.SetLabel(path)
+        #self.Layout()
          
     def scaleImage(self, filename, maxW, maxH):
         img = wx.Image(filename, wx.BITMAP_TYPE_ANY)
