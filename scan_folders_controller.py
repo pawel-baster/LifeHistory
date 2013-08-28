@@ -1,10 +1,14 @@
 from PIL import Image
 from PIL.ExifTags import TAGS
 
+import wx
 import os
 import fnmatch
 import time
 import datetime
+
+from model import Event
+from scan_dialog import DatePickerDialog
 
 class RescanController:
    
@@ -24,15 +28,34 @@ class RescanController:
        imagesWithDates = result[0]
        imagesWithoutDates = result[1]
        
+       lines = []
+       
        for path, dt_obj in imagesWithDates:
            event = Event(path, 'image', dt_obj)
-	   print event
-      
-      # foreach image in images_without_dates:
-          # try to retrieve it from the directory name
-          # display a dialog
-          
-      # save file
+           lines.append(str(event))
+       
+       userDates = self.promptForDates(imagesWithoutDates)
+       
+       for path, date in userDates:
+           if date is not None:
+               event = Event(path, 'image', date)
+               lines.append(str(event))
+           else:
+               lines.append("# Could not find date for " + path)
+               
+       with open(filename, 'w') as f:
+           for line in lines:
+               f.write(line + "\n")
+
+    def promptForDates(self, images):
+         imageList = map(lambda path: (path, None), images)
+         app = wx.PySimpleApp(0)
+         wx.InitAllImageHandlers()
+         dialog_1 = DatePickerDialog(imageList, None, -1, "")
+         app.SetTopWindow(dialog_1)
+         dialog_1.Show()
+         app.MainLoop()
+         return imageList
 
     def traverse_folder(self, hash, folder):
         imagesWithDates = []
@@ -42,19 +65,19 @@ class RescanController:
                path = os.path.join(dirpath, f) 
                date = self.date_reader.get_date(path)
                if date is not None:
-		   print "got date for " + path
                    dt_obj = datetime.datetime.fromtimestamp(time.mktime(date))
                    imagesWithDates.append((path, dt_obj))
+               elif path in hash:
+                   imagesWithDates.append((path, hash[path]))
                else:
                    imagesWithoutDates.append(path)
-                   print "no date for " + path
                    
         return (imagesWithDates, imagesWithoutDates)
 
     def load_into_dictionary(self, filename):
         hash = {}
         if os.path.exists(filename):
-            events = parser.readFiles([filename])
+            events = self.parser.readFiles([filename])
             for event in events:
                 if event.type == 'image':
                     hash[event.content] = event.startDate
@@ -89,7 +112,10 @@ class SimpleDateReader:
         return ret
       
     def parse_date(self, string):
-        try:
-	    return time.strptime(string, "%Y:%m:%d %H:%M:%S")
-	except ValueError:
-	    return time.strptime(string, "%Y/%m/%d %H:%M:%S")
+        formats = ["%Y:%m:%d %H:%M:%S", "%Y/%m/%d %H:%M:%S"]
+        for format in formats:
+            try:
+                return time.strptime(string, format)
+            except ValueError:
+                pass
+        return None

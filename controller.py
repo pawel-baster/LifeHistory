@@ -3,7 +3,7 @@ import wx
 import datetime
 
 from model import GetClosestEventsFilter, SimpleEventFilter, Model, TextFileParser
-from rescan_controller import RescanController, SimpleDateReader
+from scan_folders_controller import RescanController, SimpleDateReader
 from mainFrame import LifeHistoryApp
 import config
 
