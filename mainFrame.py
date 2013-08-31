@@ -6,6 +6,7 @@ import wx
 import wx.grid
 import datetime
 import random
+from helpers import ExifHelper
 
 import config
 
@@ -75,7 +76,7 @@ class LifeHistoryMainFrame(wx.Frame):
     def registerImageEvents(self, imageEvents):
         self.imageList = imageEvents
         if len(self.imageList ) > 0:
-            self.pictureId = 0 #random.randrange(len(self.imageList ))
+            self.pictureId = 0
             self.displaySelectedImage()
             self.SetSizeHints(minW=400, maxW=400, minH=400)
         else:
@@ -99,14 +100,28 @@ class LifeHistoryMainFrame(wx.Frame):
 
     def displaySelectedImage(self):
         filename = self.imageList[self.pictureId].content
-        bitmap = self.scaleImage(filename)            
-        self.image.SetBitmap(wx.BitmapFromImage(bitmap))
+        image = wx.Image(filename, wx.BITMAP_TYPE_ANY)
+        image = self.rotateByExif(filename, image)
+        image = self.scaleImage(image)        
+        self.image.SetBitmap(wx.BitmapFromImage(image))
         self.imageCounter.SetLabel("%d / %d" % (self.pictureId + 1, len(self.imageList)))
         self.imageDescription.SetLabel(str(self.imageList[self.pictureId].startDate))
         # TODO: center the bitmap
             
-    def scaleImage(self, filename):
-        img = wx.Image(filename, wx.BITMAP_TYPE_ANY)
+    def rotateByExif(self, path, image):
+    	'''rotates the image (if needed) using exif orientation data'''
+    	exif_data = ExifHelper.get_exif_data(path)
+    	#print exif_data
+    	if 'Orientation' in exif_data:
+    	    orientation = exif_data['Orientation']
+    	    print 'orientation: ' + str(orientation)
+    	    if orientation == 6:
+    	        return image.Rotate90()
+    	else: 
+    	    print 'no orientation data'
+    	return image
+    
+    def scaleImage(self, img):        
         W = img.GetWidth()
         H = img.GetHeight()
         if W > H:

@@ -1,16 +1,14 @@
-from PIL import Image
-from PIL.ExifTags import TAGS
-
-import wx
+#import wx
 import os
 import fnmatch
 import time
 import datetime
+import re
 
 from model import Event
 from scan_folder_dialog import DatePickerDialog
 
-class RescanController:
+class ScanFoldersController:
    
     def __init__(self, folders, parser, date_reader):
         self.folders = folders
@@ -24,6 +22,8 @@ class RescanController:
     def rescan_folder(self, folder, filename):
        hash = self.load_into_dictionary(filename)
           
+       if not os.path.exists(folder):
+           raise Exception("Folder %s does not exist" % folder)
        result = self.traverse_folder(hash, folder)    
        imagesWithDates = result[0]
        imagesWithoutDates = result[1]
@@ -49,7 +49,7 @@ class RescanController:
                f.write(line + "\n")
 
     def promptForDates(self, images):
-         imageList = map(lambda path: (path, None), images)
+         imageList = map(lambda path: (path, self.date_reader.getDateFromPath(path)), images)
          app = wx.PySimpleApp(0)
          wx.InitAllImageHandlers()
          dialog_1 = DatePickerDialog(imageList, None, -1, "")
@@ -62,7 +62,7 @@ class RescanController:
         imagesWithDates = []
         imagesWithoutDates = []
         for dirpath, dirnames, files in os.walk(folder):
-           for f in [f for f in files if fnmatch.fnmatch(f.lower(), '*.jpg')]: 
+           for f in sorted([f for f in files if fnmatch.fnmatch(f.lower(), '*.jpg')]): 
                path = os.path.join(dirpath, f) 
                date = self.date_reader.get_date(path)
                if date is not None:
@@ -88,30 +88,15 @@ class SimpleDateReader:
     
     def get_date(self, path):
         try:
-            exifData = self.get_exif_data(path)
+            exifData = ExifHelper.get_exif_data(path)
             if 'DateTimeOriginal' in exifData:
                 return self.parse_date(exifData['DateTimeOriginal'])
             if 'DateTimeDigitized' in exifData:
                 return self.parse_date(exifData['DateTimeDigitized'])
-            #date = self.getDateFromPath(path)
-            #if date is not None:
-            #	return date
             return None
         except:
-	    return None
+	    return None    
     
-    def get_exif_data(self, fname):
-        """Get embedded EXIF data from image file."""
-        ret = {}
-        img = Image.open(fname)
-        if hasattr( img, '_getexif' ):
-            exifinfo = img._getexif()
-            if exifinfo != None:
-                for tag, value in exifinfo.items():
-                    decoded = TAGS.get(tag, tag)
-                    ret[decoded] = value
-        return ret
-      
     def parse_date(self, string):
         formats = ["%Y:%m:%d %H:%M:%S", "%Y/%m/%d %H:%M:%S"]
         for format in formats:
@@ -120,3 +105,13 @@ class SimpleDateReader:
             except ValueError:
                 pass
         return None
+        
+    def getDateFromPath(self, path):
+    	dirname = os.path.basename(os.path.dirname(path))
+    	regexps = [('(\d{4}-\d{2}-\d{2})', '%Y-%m-%d'),
+    	    ('(\d{2}\.\d{2}\.\d{2})', '%d.%m.%y')]
+    	for regexp, date_format in regexps:
+    	    matcher = re.search(regexp, path)
+            if matcher is not None:
+               return datetime.datetime.strptime(matcher.group(0), date_format)
+    	return None

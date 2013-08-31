@@ -127,7 +127,7 @@ class GetClosestEventsFilter(SimpleEventFilter):
             else:
                 break
                     
-        return sorted(selectedEvents, key=lambda event: event.startYear)
+        return sorted(selectedEvents, key=lambda event: event.startDate)
             
     def dateDistance(self, date, event):
 

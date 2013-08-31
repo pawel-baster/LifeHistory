@@ -4,6 +4,7 @@
 
 import wx
 import datetime
+import time
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -80,8 +81,10 @@ class DatePickerDialog(wx.Dialog):
             self.Destroy()
 
     def showImage(self, imageId):
-        if self.images[self.currentImage][1] is not None:
-            self.dateCtrl.SetValue(self.images[self.currentImage][1])
+        suggested_date = self.images[self.currentImage][1]
+        if suggested_date is not None:
+            wx_time = wx.DateTimeFromTimeT(time.mktime(suggested_date.timetuple())) 
+            self.dateCtrl.SetValue(wx_time)
         path = self.images[self.currentImage][0]
         bitmap = wx.Bitmap(path)    
         image = self.scaleImage(self.images[self.currentImage][0], 600, 400)
@@ -93,6 +96,8 @@ class DatePickerDialog(wx.Dialog):
         img = wx.Image(filename, wx.BITMAP_TYPE_ANY)
         W = img.GetWidth()
         H = img.GetHeight()
+        if H == 0 or W == 0:
+            raise Exception('Could not read size of an image: %s', filename)
         if maxW/maxH > W/H:
             NewH = maxH
             NewW = maxH * W / H
