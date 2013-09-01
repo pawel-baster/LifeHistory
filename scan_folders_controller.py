@@ -1,4 +1,4 @@
-#import wx
+import wx
 import os
 import fnmatch
 import time
@@ -49,7 +49,7 @@ class ScanFoldersController:
                f.write(line + "\n")
 
     def promptForDates(self, images):
-         imageList = map(lambda path: (path, self.date_reader.getDateFromPath(path)), images)
+         imageList = map(lambda path: (path, self.date_reader.get_date_from_path(path)), images)
          app = wx.PySimpleApp(0)
          wx.InitAllImageHandlers()
          dialog_1 = DatePickerDialog(imageList, None, -1, "")
@@ -106,7 +106,7 @@ class SimpleDateReader:
                 pass
         return None
         
-    def getDateFromPath(self, path):
+    def get_date_from_path(self, path):
     	dirname = os.path.basename(os.path.dirname(path))
     	regexps = [('(\d{4}-\d{2}-\d{2})', '%Y-%m-%d'),
     	    ('(\d{2}\.\d{2}\.\d{2})', '%d.%m.%y')]

@@ -4,7 +4,7 @@ import datetime
 
 from model import GetClosestEventsFilter, SimpleEventFilter, Model, TextFileParser
 from scan_folders_controller import ScanFoldersController, SimpleDateReader
-from mainFrame import LifeHistoryApp
+from main_frame import LifeHistoryApp
 import config
 
 class Controller:

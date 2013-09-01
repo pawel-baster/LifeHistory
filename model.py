@@ -117,17 +117,18 @@ class GetClosestEventsFilter(SimpleEventFilter):
         events = [event for event in events if event.type == type]
         # this can be optimized:
         events = sorted(map(lambda event: (self.dateDistance(date, event), event), events)) 
-        #events = sorted(events, key=lambda event: self.dateDistance(date, event))
         selectedEvents = []
         counter = 0
-        for (diff, event) in events:
+        for (diff, event) in events:            
             if diff == 0 or counter < self.eventCount:
                 selectedEvents.append(event)
                 counter += 1
             else:
                 break
-                    
-        return sorted(selectedEvents, key=lambda event: event.startDate)
+        selectedEvents = sorted(selectedEvents, key=lambda event: event.startDate)
+        #for event in selectedEvents:
+        #    print str(event.startDate) + ' ' + event.content.encode('utf-8')	
+        return selectedEvents
             
     def dateDistance(self, date, event):
 

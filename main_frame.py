@@ -17,6 +17,8 @@ import config
 class LifeHistoryMainFrame(wx.Frame):
     def __init__(self, model, *args, **kwds):
         self.model = model
+        self.pictureId = 0
+        self.timer_next_image = None
         # begin wxGlade: LifeHistoryMainFrame.__init__
         kwds["style"] = wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.SYSTEM_MENU | wx.RESIZE_BORDER | wx.FRAME_NO_TASKBAR | wx.CLIP_CHILDREN
         wx.Frame.__init__(self, *args, **kwds)
@@ -33,9 +35,13 @@ class LifeHistoryMainFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.onPrevImage, self.btnPrev)
         self.Bind(wx.EVT_BUTTON, self.onNextImage, self.btnNext)
         # end wxGlade
-        self.timer = wx.Timer(self)
-        self.Bind(wx.EVT_TIMER, self.onNextImage, self.timer)
-        self.timer.Start(config.slideshowInterval * 1000)
+        
+        self.timer_reload = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self.updateEvents, self.timer_reload)
+        self.timer_reload.Start(5000)
+        
+        #icon = wx.IconFromBitmap(wx.Bitmap('assets/icon.png'))
+        #wx.TaskBarIcon().SetIcon(icon, 'test')
         
     def __set_properties(self):
         # begin wxGlade: LifeHistoryMainFrame.__set_properties
@@ -43,7 +49,6 @@ class LifeHistoryMainFrame(wx.Frame):
         self.SetSize((400, 534))
         self.panel_1.SetScrollRate(10, 10)
         # end wxGlade
-        # TODO: reload every x minutes
         
     def __do_layout(self):
         # begin wxGlade: LifeHistoryMainFrame.__do_layout
@@ -67,7 +72,7 @@ class LifeHistoryMainFrame(wx.Frame):
         self.textEventHolder = textEventHolder
         self.updateEvents()
         
-    def updateEvents(self):
+    def updateEvents(self, event=None):
     	print 'reading events...'
         events = self.model.getEventsForDate(datetime.date.today())
         self.displayTextEvents(events['text'])
@@ -75,10 +80,14 @@ class LifeHistoryMainFrame(wx.Frame):
                 
     def registerImageEvents(self, imageEvents):
         self.imageList = imageEvents
-        if len(self.imageList ) > 0:
-            self.pictureId = 0
+        if self.timer_next_image is not None:
+            self.timer_next_image.Destroy()
+        if len(self.imageList ) > 0:            
             self.displaySelectedImage()
             self.SetSizeHints(minW=400, maxW=400, minH=400)
+            self.timer_next_image = wx.Timer(self)
+            self.Bind(wx.EVT_TIMER, self.onNextImage, self.timer_next_image)
+            self.timer_next_image.Start(config.slideshowInterval * 1000)
         else:
             self.image.Hide()
             self.btnPrev.Hide()
@@ -88,7 +97,9 @@ class LifeHistoryMainFrame(wx.Frame):
             self.SetSize((400, 300))	
 
     def displayTextEvents(self, events):
-    	#self.panel.DestroyChildren()
+    	while self.panel_1.GetSizer().Remove(0):
+            pass
+        self.panel_1.DestroyChildren()
         for event in events:
             yearLabel = wx.StaticText(self.panel_1, -1, str(event.startDate))
             eventTextLabel = wx.StaticText(self.panel_1, -1, event.content)
@@ -97,6 +108,8 @@ class LifeHistoryMainFrame(wx.Frame):
             sizer.Add(yearLabel, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
             sizer.Add(eventTextLabel, 0, wx.ALL, 5)
             self.textEventHolder.Add(sizer, 0, 0, 11)
+        self.textEventHolder.Layout()
+        
 
     def displaySelectedImage(self):
         filename = self.imageList[self.pictureId].content
@@ -111,14 +124,10 @@ class LifeHistoryMainFrame(wx.Frame):
     def rotateByExif(self, path, image):
     	'''rotates the image (if needed) using exif orientation data'''
     	exif_data = ExifHelper.get_exif_data(path)
-    	#print exif_data
     	if 'Orientation' in exif_data:
     	    orientation = exif_data['Orientation']
-    	    print 'orientation: ' + str(orientation)
     	    if orientation == 6:
     	        return image.Rotate90()
-    	else: 
-    	    print 'no orientation data'
     	return image
     
     def scaleImage(self, img):        
