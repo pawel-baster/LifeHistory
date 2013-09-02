@@ -38,7 +38,7 @@ class LifeHistoryMainFrame(wx.Frame):
         
         self.timer_reload = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.updateEvents, self.timer_reload)
-        self.timer_reload.Start(5000)
+        self.timer_reload.Start(config.refreshRate * 1000)
         
         #icon = wx.IconFromBitmap(wx.Bitmap('assets/icon.png'))
         #wx.TaskBarIcon().SetIcon(icon, 'test')
