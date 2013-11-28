@@ -1,7 +1,7 @@
 # lines starting with "#" are ignored
 
 # This is a one-day event:
-2012-03-04: Trip to X
+2012-03-04: text :Trip to X
 
 # This is a many-day event:
-2012-03-01 - 2012-04-02: Studying in Y
+2012-03-01 - 2012-04-02: text : Studying in Y
