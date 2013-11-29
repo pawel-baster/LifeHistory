@@ -9,6 +9,77 @@ import random
 from helpers import ExifHelper
 
 import config
+from app_ico import getIcon
+ 
+########################################################################
+class MailIcon(wx.TaskBarIcon):
+    TBMENU_RESTORE = wx.NewId()
+    TBMENU_CLOSE   = wx.NewId()
+    TBMENU_CHANGE  = wx.NewId()
+    TBMENU_REMOVE  = wx.NewId()
+ 
+    #----------------------------------------------------------------------
+    def __init__(self, frame):
+        wx.TaskBarIcon.__init__(self)
+        self.frame = frame
+ 
+        # Set the image
+        self.tbIcon = getIcon()
+ 
+        self.SetIcon(self.tbIcon, "Test")
+ 
+        # bind some events
+        self.Bind(wx.EVT_MENU, self.OnTaskBarClose, id=self.TBMENU_CLOSE)
+	self.Bind(wx.EVT_MENU, self.OnRestore, id=self.TBMENU_RESTORE)
+#        self.Bind(wx.EVT_TASKBAR_LEFT_DOWN, self.OnTaskBarLeftClick)
+	self.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.OnRestore)
+ 
+    #----------------------------------------------------------------------
+    def CreatePopupMenu(self, evt=None):
+        """
+        This method is called by the base class when it needs to popup
+        the menu for the default EVT_RIGHT_DOWN event.  Just create
+        the menu how you want it and return it from this function,
+        the base class takes care of the rest.
+        """
+        menu = wx.Menu()
+        menu.Append(self.TBMENU_RESTORE, "Open Program")
+        menu.Append(self.TBMENU_CHANGE, "Show all the Items")
+        menu.AppendSeparator()
+        menu.Append(self.TBMENU_CLOSE,   "Exit Program")
+        return menu
+ 
+    #----------------------------------------------------------------------
+    def OnTaskBarActivate(self, evt):
+        """"""
+        pass
+ 
+    #----------------------------------------------------------------------
+    def OnTaskBarClose(self, evt):
+        """
+        Destroy the taskbar icon and frame from the taskbar icon itself
+        """
+        self.frame.Close()
+
+    def OnRestore(self, evt):
+        """
+
+        """
+	print "restore"
+	if self.frame.IsIconized():
+		self.frame.Iconize(False)
+	if not self.frame.IsShown():
+		self.frame.Show(True)
+		self.frame.Raise()
+ 
+    #----------------------------------------------------------------------
+    def OnTaskBarLeftClick(self, evt):
+        """
+        Create the right-click menu
+        """
+        menu = self.CreatePopupMenu()
+        self.PopupMenu(menu)
+        menu.Destroy()
 
 # begin wxGlade: extracode
 # end wxGlade
@@ -20,7 +91,7 @@ class LifeHistoryMainFrame(wx.Frame):
         self.pictureId = 0
         self.timer_next_image = None
         # begin wxGlade: LifeHistoryMainFrame.__init__
-        kwds["style"] = wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.SYSTEM_MENU | wx.RESIZE_BORDER | wx.FRAME_NO_TASKBAR | wx.CLIP_CHILDREN
+        kwds["style"] = wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.SYSTEM_MENU | wx.RESIZE_BORDER | wx.CLIP_CHILDREN
         wx.Frame.__init__(self, *args, **kwds)
         self.panel_1 = wx.ScrolledWindow(self, -1, style=wx.TAB_TRAVERSAL)
         self.image = wx.StaticBitmap(self, -1, wx.NullBitmap)
@@ -42,6 +113,28 @@ class LifeHistoryMainFrame(wx.Frame):
         
         #icon = wx.IconFromBitmap(wx.Bitmap('assets/icon.png'))
         #wx.TaskBarIcon().SetIcon(icon, 'test')
+	self.tbIcon = MailIcon(self)
+        self.Bind(wx.EVT_CLOSE, self.onClose)
+	
+	# Handle the window being `iconized` (err minimized)
+	self.Bind(wx.EVT_ICONIZE, self.on_iconify)
+
+    def on_iconify(self, e):
+        """
+         Being minimized, hide self, which removes the program from the
+         taskbar.
+	"""
+	print "iconizing"
+	self.Hide()
+ 
+    #----------------------------------------------------------------------
+    def onClose(self, evt):
+        """
+        Destroy the taskbar icon and the frame
+        """
+        self.tbIcon.RemoveIcon()
+        self.tbIcon.Destroy()
+        self.Destroy()
         
     def __set_properties(self):
         # begin wxGlade: LifeHistoryMainFrame.__set_properties
