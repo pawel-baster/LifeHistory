@@ -7,70 +7,13 @@ import wx.grid
 import datetime
 import random
 from helpers import ExifHelper
+import os
 
 import config
-from app_ico import getIcon
- 
-########################################################################
-class MailIcon(wx.TaskBarIcon):
-    TBMENU_RESTORE = wx.NewId()
-    TBMENU_CLOSE   = wx.NewId()
-    TBMENU_CHANGE  = wx.NewId()
-    TBMENU_REMOVE  = wx.NewId()
- 
-    #----------------------------------------------------------------------
-    def __init__(self, frame):
-        wx.TaskBarIcon.__init__(self)
-        self.frame = frame
- 
-        # Set the image
-        self.tbIcon = getIcon()
- 
-        self.SetIcon(self.tbIcon, "Test")
- 
-        # bind some events
-        self.Bind(wx.EVT_MENU, self.OnTaskBarClose, id=self.TBMENU_CLOSE)
-        self.Bind(wx.EVT_TASKBAR_LEFT_DOWN, self.OnToggleVisibility)
-	self.Bind(wx.EVT_TASKBAR_RIGHT_DOWN, self.OnTaskBarLeftClick)
- 
-    #----------------------------------------------------------------------
-    def CreatePopupMenu(self, evt=None):
-        """
-        This method is called by the base class when it needs to popup
-        the menu for the default EVT_RIGHT_DOWN event.  Just create
-        the menu how you want it and return it from this function,
-        the base class takes care of the rest.
-        """
-        menu = wx.Menu()
-        menu.Append(self.TBMENU_CLOSE,   "Exit Program")
-        return menu
- 
-    #----------------------------------------------------------------------
-    def OnToggleVisibility(self, evt):
-	if self.frame.IsShown():
-		self.frame.Hide()
-	else:
-		self.frame.Show()
- 
-    #----------------------------------------------------------------------
-    def OnTaskBarClose(self, evt):
-        """
-        Destroy the taskbar icon and frame from the taskbar icon itself
-        """
-        self.frame.exit()
- 
-    #----------------------------------------------------------------------
-    def OnTaskBarLeftClick(self, evt):
-        """
-        Create the right-click menu
-        """
-        menu = self.CreatePopupMenu()
-        self.PopupMenu(menu)
-        menu.Destroy()
+from tray_icon import BackgroundAppIcon 
 
 # begin wxGlade: extracode
 # end wxGlade
-
 
 class LifeHistoryMainFrame(wx.Frame):
     def __init__(self, model, *args, **kwds):
@@ -98,13 +41,10 @@ class LifeHistoryMainFrame(wx.Frame):
         self.Bind(wx.EVT_TIMER, self.updateEvents, self.timer_reload)
         self.timer_reload.Start(config.refreshRate * 1000)
         
-        #icon = wx.IconFromBitmap(wx.Bitmap('assets/icon.png'))
-
-	self.tbIcon = MailIcon(self)
+	self.icon_standard = wx.Icon('assets/icon.ico', wx.BITMAP_TYPE_ICO, 16, 16)
+	self.tbIcon = BackgroundAppIcon(self, self.icon_standard)
         self.Bind(wx.EVT_CLOSE, self.onClose)
 	
-
-    #----------------------------------------------------------------------
     def onClose(self, evt):
         """
         Destroy the taskbar icon and the frame
@@ -112,6 +52,9 @@ class LifeHistoryMainFrame(wx.Frame):
 	self.Hide()
 
     def exit(self):
+	"""
+	called from the tray icon when the app should be closed (not hidden)
+	"""
         self.tbIcon.RemoveIcon()
         self.tbIcon.Destroy()
         self.Destroy()
@@ -186,13 +129,17 @@ class LifeHistoryMainFrame(wx.Frame):
 
     def displaySelectedImage(self):
         filename = self.imageList[self.pictureId].content
-        image = wx.Image(filename, wx.BITMAP_TYPE_ANY)
-        image = self.rotateByExif(filename, image)
-        image = self.scaleImage(image)        
-        self.image.SetBitmap(wx.BitmapFromImage(image))
         self.imageCounter.SetLabel("%d / %d" % (self.pictureId + 1, len(self.imageList)))
-        self.imageDescription.SetLabel(str(self.imageList[self.pictureId].startDate))
-        # TODO: center the bitmap
+	if os.path.exists(filename):
+            image = wx.Image(filename, wx.BITMAP_TYPE_ANY)
+            image = self.rotateByExif(filename, image)
+            image = self.scaleImage(image)        
+            self.image.SetBitmap(wx.BitmapFromImage(image))
+            self.imageDescription.SetLabel(str(self.imageList[self.pictureId].startDate))
+            # TODO: center the bitmap
+	else:
+            # display a placeholder?
+	    self.imageDescription.SetLabel('(missing picture)')
             
     def rotateByExif(self, path, image):
     	'''rotates the image (if needed) using exif orientation data'''
