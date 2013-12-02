@@ -30,9 +30,8 @@ class MailIcon(wx.TaskBarIcon):
  
         # bind some events
         self.Bind(wx.EVT_MENU, self.OnTaskBarClose, id=self.TBMENU_CLOSE)
-	self.Bind(wx.EVT_MENU, self.OnRestore, id=self.TBMENU_RESTORE)
-#        self.Bind(wx.EVT_TASKBAR_LEFT_DOWN, self.OnTaskBarLeftClick)
-	self.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.OnRestore)
+        self.Bind(wx.EVT_TASKBAR_LEFT_DOWN, self.OnToggleVisibility)
+	self.Bind(wx.EVT_TASKBAR_RIGHT_DOWN, self.OnTaskBarLeftClick)
  
     #----------------------------------------------------------------------
     def CreatePopupMenu(self, evt=None):
@@ -43,34 +42,22 @@ class MailIcon(wx.TaskBarIcon):
         the base class takes care of the rest.
         """
         menu = wx.Menu()
-        menu.Append(self.TBMENU_RESTORE, "Open Program")
-        menu.Append(self.TBMENU_CHANGE, "Show all the Items")
-        menu.AppendSeparator()
         menu.Append(self.TBMENU_CLOSE,   "Exit Program")
         return menu
  
     #----------------------------------------------------------------------
-    def OnTaskBarActivate(self, evt):
-        """"""
-        pass
+    def OnToggleVisibility(self, evt):
+	if self.frame.IsShown():
+		self.frame.Hide()
+	else:
+		self.frame.Show()
  
     #----------------------------------------------------------------------
     def OnTaskBarClose(self, evt):
         """
         Destroy the taskbar icon and frame from the taskbar icon itself
         """
-        self.frame.Close()
-
-    def OnRestore(self, evt):
-        """
-
-        """
-	print "restore"
-	if self.frame.IsIconized():
-		self.frame.Iconize(False)
-	if not self.frame.IsShown():
-		self.frame.Show(True)
-		self.frame.Raise()
+        self.frame.exit()
  
     #----------------------------------------------------------------------
     def OnTaskBarLeftClick(self, evt):
@@ -112,26 +99,19 @@ class LifeHistoryMainFrame(wx.Frame):
         self.timer_reload.Start(config.refreshRate * 1000)
         
         #icon = wx.IconFromBitmap(wx.Bitmap('assets/icon.png'))
-        #wx.TaskBarIcon().SetIcon(icon, 'test')
+
 	self.tbIcon = MailIcon(self)
         self.Bind(wx.EVT_CLOSE, self.onClose)
 	
-	# Handle the window being `iconized` (err minimized)
-	self.Bind(wx.EVT_ICONIZE, self.on_iconify)
 
-    def on_iconify(self, e):
-        """
-         Being minimized, hide self, which removes the program from the
-         taskbar.
-	"""
-	print "iconizing"
-	self.Hide()
- 
     #----------------------------------------------------------------------
     def onClose(self, evt):
         """
         Destroy the taskbar icon and the frame
         """
+	self.Hide()
+
+    def exit(self):
         self.tbIcon.RemoveIcon()
         self.tbIcon.Destroy()
         self.Destroy()
