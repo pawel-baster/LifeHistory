@@ -7,20 +7,27 @@ import wx.grid
 import datetime
 import random
 from helpers import ExifHelper
+import os
 
 import config
+from tray_icon import TwoStateBackgroundAppIcon 
 
 # begin wxGlade: extracode
 # end wxGlade
-
 
 class LifeHistoryMainFrame(wx.Frame):
     def __init__(self, model, *args, **kwds):
         self.model = model
         self.pictureId = 0
         self.timer_next_image = None
+        self.last_events_list = None
+
+        icon_standard = wx.Icon(os.path.join(os.path.dirname(__file__), 'assets', 'icon.ico'), wx.BITMAP_TYPE_ICO, 16, 16)
+        icon_unread = wx.Icon(os.path.join(os.path.dirname(__file__), 'assets', 'icon-unread.ico'), wx.BITMAP_TYPE_ICO, 16, 16)
+        self.tbIcon = TwoStateBackgroundAppIcon(self, icon_standard, icon_unread, "Life History")
+
         # begin wxGlade: LifeHistoryMainFrame.__init__
-        kwds["style"] = wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.SYSTEM_MENU | wx.RESIZE_BORDER | wx.FRAME_NO_TASKBAR | wx.CLIP_CHILDREN
+        kwds["style"] = wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.SYSTEM_MENU | wx.RESIZE_BORDER | wx.CLIP_CHILDREN
         wx.Frame.__init__(self, *args, **kwds)
         self.panel_1 = wx.ScrolledWindow(self, -1, style=wx.TAB_TRAVERSAL)
         self.image = wx.StaticBitmap(self, -1, wx.NullBitmap)
@@ -35,13 +42,27 @@ class LifeHistoryMainFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.onPrevImage, self.btnPrev)
         self.Bind(wx.EVT_BUTTON, self.onNextImage, self.btnNext)
         # end wxGlade
-        
+
+        self.Bind(wx.EVT_CLOSE, self.onClose)
+               
         self.timer_reload = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self.updateEvents, self.timer_reload)
         self.timer_reload.Start(config.refreshRate * 1000)
         
-        #icon = wx.IconFromBitmap(wx.Bitmap('assets/icon.png'))
-        #wx.TaskBarIcon().SetIcon(icon, 'test')
+    
+    def onClose(self, evt):
+        """
+        Destroy the taskbar icon and the frame
+        """
+        self.Hide()
+
+    def exit(self):
+        """
+        called from the tray icon when the app should be closed (not hidden)
+        """
+        self.tbIcon.RemoveIcon()
+        self.tbIcon.Destroy()
+        self.Destroy()
         
     def __set_properties(self):
         # begin wxGlade: LifeHistoryMainFrame.__set_properties
@@ -73,10 +94,14 @@ class LifeHistoryMainFrame(wx.Frame):
         self.updateEvents()
         
     def updateEvents(self, event=None):
-    	print 'reading events...'
+        print 'reading events...'
         events = self.model.getEventsForDate(datetime.date.today())
         self.displayTextEvents(events['text'])
         self.registerImageEvents(events['image'])
+        if self.last_events_list is not None and self.last_events_list != events:
+            print "events list has changed"
+            self.tbIcon.highlight()                
+        self.last_events_list = events
                 
     def registerImageEvents(self, imageEvents):
         self.imageList = imageEvents
@@ -94,10 +119,10 @@ class LifeHistoryMainFrame(wx.Frame):
             self.btnNext.Hide()
             self.imageCounter.Hide()
             self.SetSizeHints(minW=400, maxW=400, minH=200)
-            self.SetSize((400, 300))	
+            self.SetSize((400, 300))    
 
     def displayTextEvents(self, events):
-    	while self.panel_1.GetSizer().Remove(0):
+        while self.panel_1.GetSizer().Remove(0):
             pass
         self.panel_1.DestroyChildren()
         for event in events:
@@ -113,22 +138,26 @@ class LifeHistoryMainFrame(wx.Frame):
 
     def displaySelectedImage(self):
         filename = self.imageList[self.pictureId].content
-        image = wx.Image(filename, wx.BITMAP_TYPE_ANY)
-        image = self.rotateByExif(filename, image)
-        image = self.scaleImage(image)        
-        self.image.SetBitmap(wx.BitmapFromImage(image))
         self.imageCounter.SetLabel("%d / %d" % (self.pictureId + 1, len(self.imageList)))
-        self.imageDescription.SetLabel(str(self.imageList[self.pictureId].startDate))
-        # TODO: center the bitmap
+        if os.path.exists(filename):
+            image = wx.Image(filename, wx.BITMAP_TYPE_ANY)
+            image = self.rotateByExif(filename, image)
+            image = self.scaleImage(image)        
+            self.image.SetBitmap(wx.BitmapFromImage(image))
+            self.imageDescription.SetLabel(str(self.imageList[self.pictureId].startDate))
+            # TODO: center the bitmap
+        else:
+            # display a placeholder?
+            self.imageDescription.SetLabel('(missing picture)')
             
     def rotateByExif(self, path, image):
-    	'''rotates the image (if needed) using exif orientation data'''
-    	exif_data = ExifHelper.get_exif_data(path)
-    	if 'Orientation' in exif_data:
-    	    orientation = exif_data['Orientation']
-    	    if orientation == 6:
-    	        return image.Rotate90()
-    	return image
+        '''rotates the image (if needed) using exif orientation data'''
+        exif_data = ExifHelper.get_exif_data(path)
+        if 'Orientation' in exif_data:
+            orientation = exif_data['Orientation']
+            if orientation == 6:
+                return image.Rotate90()
+        return image
     
     def scaleImage(self, img):        
         W = img.GetWidth()

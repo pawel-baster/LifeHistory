@@ -25,6 +25,9 @@ class Event:
     	    return self.startDate.strftime('%Y-%m-%d') + ' : ' + self.type + ' : ' + self.content
     	else:
     	    return self.startDate.strftime('%Y-%m-%d') + '-' + self.endDate.strftime('%Y-%m-%d') + ' : ' + self.type + ' : ' + self.content
+
+    def __eq__(self, other):
+	    return self.content == other.content and self.type == other.type and self.startDate == other.startDate and self.endDate == other.endDate
             
 class TextFileParser:
   
