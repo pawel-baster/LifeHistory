@@ -4,19 +4,19 @@ class BackgroundAppIcon(wx.TaskBarIcon):
 
     TBMENU_CLOSE   = wx.NewId()
 
-    def __init__(self, frame, icon):
+    def __init__(self, frame, icon, tooltip):
         wx.TaskBarIcon.__init__(self)
         self.frame = frame
  
         # Set the image
         self.tbIcon = icon
  
-        self.SetIcon(self.tbIcon, "Test")
+        self.SetIcon(self.tbIcon, tooltip)
  
         # bind some events
         self.Bind(wx.EVT_MENU, self.onTaskBarClose, id=self.TBMENU_CLOSE)
         self.Bind(wx.EVT_TASKBAR_LEFT_DOWN, self.onToggleVisibility)
-	self.Bind(wx.EVT_TASKBAR_RIGHT_DOWN, self.onTaskBarLeftClick)
+        self.Bind(wx.EVT_TASKBAR_RIGHT_DOWN, self.onTaskBarLeftClick)
  
     def createPopupMenu(self, evt=None):
         """
@@ -30,13 +30,14 @@ class BackgroundAppIcon(wx.TaskBarIcon):
         return menu
  
     def onToggleVisibility(self, evt):
-	"""
-	Show or hide on left click on the tray icon
-	"""
-	if self.frame.IsShown():
-		self.frame.Hide()
-	else:
-		self.frame.Show()
+        """
+        Show or hide on left click on the tray icon
+        """
+        if self.frame.IsShown():
+            self.frame.Hide()
+        else:
+            self.frame.Show()
+            self.normal()
  
     def onTaskBarClose(self, evt):
         """
@@ -52,3 +53,15 @@ class BackgroundAppIcon(wx.TaskBarIcon):
         self.PopupMenu(menu)
         menu.Destroy()
 
+class TwoStateBackgroundAppIcon (BackgroundAppIcon):
+    
+    def __init__(self, frame, standard_icon, highlighted_icon, tooltip):
+        BackgroundAppIcon.__init__(self, frame, standard_icon, tooltip)
+        self.standard_icon = standard_icon
+        self.highlighted_icon = highlighted_icon
+
+    def highlight(self):
+        self.SetIcon(self.highlighted_icon)
+
+    def normal(self):
+        self.SetIcon(self.standard_icon)
