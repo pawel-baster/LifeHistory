@@ -20,7 +20,7 @@ class LifeHistoryMainFrame(wx.Frame):
         self.model = model
         self.pictureId = 0
         self.timer_next_image = None
-        self.last_events_list = None
+        self.last_date = None
 
         icon_standard = wx.Icon(os.path.join(os.path.dirname(__file__), 'assets', 'icon.ico'), wx.BITMAP_TYPE_ICO, 16, 16)
         icon_unread = wx.Icon(os.path.join(os.path.dirname(__file__), 'assets', 'icon-unread.ico'), wx.BITMAP_TYPE_ICO, 16, 16)
@@ -95,13 +95,14 @@ class LifeHistoryMainFrame(wx.Frame):
         
     def updateEvents(self, event=None):
         print 'reading events...'
-        events = self.model.getEventsForDate(datetime.date.today())
+	date = datetime.date.today()
+        events = self.model.getEventsForDate(date)
         self.displayTextEvents(events['text'])
         self.registerImageEvents(events['image'])
-        if self.last_events_list is not None and self.last_events_list != events:
+        if self.last_date is not None and self.last_date != date:
             print "events list has changed"
             self.tbIcon.highlight()                
-        self.last_events_list = events
+        self.last_date = date
                 
     def registerImageEvents(self, imageEvents):
         self.imageList = imageEvents
