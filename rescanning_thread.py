@@ -13,11 +13,12 @@ from model import Event
 
 class RescanningThread(threading.Thread):
   
-    def __init__(self, folders, parser, date_reader):
+    def __init__(self, folders, parser, date_reader, app):
         threading.Thread.__init__(self)
         self.folders = folders
         self.parser = parser
         self.date_reader = date_reader
+        self.app = app
   
     def start_if_needed(self):
         self.start()
@@ -58,7 +59,8 @@ class RescanningThread(threading.Thread):
         for image in imagesWithoutDates:
             lines.append("# Could not find date for " + path)
        
-       #if len(imagesWithoutDates) > 0:
+        if len(imagesWithoutDates) > 0:
+            self.app.OnImagesWithoutDates(imagesWithoutDates)
        #    userDates = self.promptForDates(imagesWithoutDates)
        
        #    for path, date in userDates:

@@ -35,6 +35,7 @@ class LifeHistoryMainFrame(wx.Frame):
         self.imageCounter = wx.StaticText(self, -1, "0/1")
         self.btnNext = wx.Button(self, -1, ">")
         self.imageDescription = wx.StaticText(self, -1, "")
+        self.imageWithoutDatesCounter = wx.StaticText(self, -1, "")
 
         self.__set_properties()
         self.__do_layout()
@@ -74,18 +75,20 @@ class LifeHistoryMainFrame(wx.Frame):
     def __do_layout(self):
         # begin wxGlade: LifeHistoryMainFrame.__do_layout
         sizer_5 = wx.BoxSizer(wx.VERTICAL)
-        sizer_6 = wx.BoxSizer(wx.HORIZONTAL)
+        self.status_bar = wx.BoxSizer(wx.HORIZONTAL)
         sizer_7 = wx.BoxSizer(wx.HORIZONTAL)
         textEventHolder = wx.BoxSizer(wx.VERTICAL)
         self.panel_1.SetSizer(textEventHolder)
         sizer_5.Add(self.panel_1, 1, wx.EXPAND, 0)
         sizer_7.Add(self.image, 0, 0, 0)
-        sizer_5.Add(sizer_7, 0, 0, 0)
-        sizer_6.Add(self.btnPrev, 0, 0, 0)
-        sizer_6.Add(self.imageCounter, 0, wx.ALL, 5)
-        sizer_6.Add(self.btnNext, 0, 0, 0)
-        sizer_6.Add(self.imageDescription, 0, wx.ALL, 5)
-        sizer_5.Add(sizer_6, 0, 0, 0)
+        sizer_5.Add(sizer_7, 0, 0, 0)        
+        self.status_bar.Add(self.btnPrev, 0, 0, 0)
+        self.status_bar.Add(self.imageCounter, 0, wx.ALL, 5)
+        self.status_bar.Add(self.btnNext, 0, 0, 0)
+        self.status_bar.Add(self.imageDescription, 0, wx.ALL, 5)        
+        #self.status_bar.AddStretchSpacer()
+        self.status_bar.Add(self.imageWithoutDatesCounter, 0, wx.ALL, 5)
+        sizer_5.Add(self.status_bar, 0, 0, 0)
         self.SetSizer(sizer_5)
         self.Layout()
         self.Centre()
@@ -180,7 +183,12 @@ class LifeHistoryMainFrame(wx.Frame):
     def onNextImage(self, event):  # wxGlade: LifeHistoryMainFrame.<event_handler>
         self.pictureId = self.pictureId + 1 if self.pictureId < len(self.imageList) - 1 else 0
         self.displaySelectedImage()
-
+       
+    def showImagesWithoutDates(self, imagesWithoutDates):
+        self.imageWithoutDatesCounter.SetLabel(str(len(imagesWithoutDates)))
+        self.status_bar.Layout()
+        
+    
 # end of class LifeHistoryMainFrame
 class LifeHistoryApp(wx.App):
     def __init__(self, arg, model):
@@ -189,9 +197,12 @@ class LifeHistoryApp(wx.App):
   
     def OnInit(self):
         wx.InitAllImageHandlers()
-        mainFrame = LifeHistoryMainFrame(self.model, None, -1, "")
-        self.SetTopWindow(mainFrame)
-        mainFrame.Show()
+        self.mainFrame = LifeHistoryMainFrame(self.model, None, -1, "")
+        self.SetTopWindow(self.mainFrame)
+        self.mainFrame.Show()
         return 1
+
+    def OnImagesWithoutDates(self, imagesWithoutDates):
+        wx.CallAfter(self.mainFrame.showImagesWithoutDates, imagesWithoutDates)
 
 # end of class LifeHistoryApp

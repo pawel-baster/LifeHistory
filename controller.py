@@ -21,9 +21,9 @@ if __name__ == '__main__':
     textFilter = GetClosestEventsFilter(config.minNumberOfEvents)
     imageFilter = GetClosestEventsFilter(1)
     model = Model(parser, textFilter, imageFilter, config.eventFiles)
-    t = RescanningThread(config.imageFolders, parser, SimpleDateReader())
-    t.start_if_needed()
     LifeHistory = LifeHistoryApp(0, model)
+    t = RescanningThread(config.imageFolders, parser, SimpleDateReader(), LifeHistory)
+    t.start_if_needed()    
     LifeHistory.MainLoop()
 
 
